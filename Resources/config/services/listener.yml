@@ -1,0 +1,16 @@
+parameters:
+
+services:
+    kernel.listener.orange_search_listener:
+        class: Orange\SearchBundle\Listener\SearchListener
+        calls:
+            - [setContainer, ["@service_container"]]
+        tags:
+            - { name: doctrine.event_listener, event: postFlush, method: postFlush }
+            - { name: doctrine.event_listener, event: preRemove, method: preRemove }
+            - { name: doctrine.event_listener, event: postRemove, method: postRemove }
+            - { name: doctrine.event_listener, event: postPersist, method: postPersist }
+            - { name: doctrine.event_listener, event: postUpdate, method: postUpdate }
+
+
+                

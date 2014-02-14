@@ -1,0 +1,133 @@
+{% extends 'ClarolineCoreBundle:Workspace:layout.html.twig' %}
+
+           
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+
+{% block section_content %}
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'list_results'|trans({}, 'search') }}</h3>
+    </div>
+    <div class="panel-body">
+	    <div class="content-element content-6">
+<p>{{ 'nb_results'|trans({}, 'search') }} : {{ nbResults }}</p>
+<br/>Time {{time}} ms
+		</div>
+					<form class="form-horizontal" method="POST" action="" >
+		<div class="content-element content-6">
+			 <div class="input-group">
+			   <input class="form-control" type="text" id="search-items-txt" name="search" placeholder="{{ 'search'|trans({}, 'search') }}" value="{{ name }}">
+		<select class="form-control" name="resource_type" id="resource_type" style="width:150px">
+		{% set opt = 0 %}
+		{% for resourceType in resourcesType %}
+		{% if opt == 0 %}
+	    <option value="{{ resourceType }}" selected>{{ resourceType|trans({}, 'search') }}</option>
+		{% else %}
+	    <option value="{{ resourceType }}">{{ resourceType|trans({}, 'search') }}</option>
+		{% endif %}
+		{% set opt = opt + 1 %}
+				{% endfor %}
+				</select>
+				<span class="input-group-btn">
+					<button class="filter btn btn-default" type= "submit" id="search-button">
+						<i class="icon-search"></i>
+					</button>
+					<button class="config-search-panel btn btn-default" type="button"><i class="icon-cog"></i></button>
+				</span>
+			</div>
+		</div>
+    </form>
+		</div>
+
+    <div class="panel-body">
+		<div class="content-element content-3">
+		<h3>Content Type</h3>
+		{% for facet,value in facets %}
+		{{facet}} ({{value}})<br />
+		{% endfor %}
+		<h3>Facet Workspace</h3>
+		{% for facet,value in facetsWks %}
+		{{facet}} ({{value}})<br />
+		{% endfor %}
+        </div>
+		
+	    <div class="content-element  content-9">
+		<table id="subjects_table" class="table table-striped table-bordered table-condensed">
+                <thead>
+                    <tr>
+                        <th>{{ 'file'|trans({}, 'search') }}</th>
+                        <th>{{ 'name'|trans({}, 'search') }}</th>
+                        <th>{{ 'type'|trans({}, 'search') }}</th>
+                        <th>{{ 'page / taille'|trans({}, 'search') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="table-subjects-body">
+		{% for document in results %}
+					<tr><td>
+					{% if document["mime_type"] == 'custom/claroline_forum' and document["subject_id"] is defined %}
+					<a href='{{ _path('claro_forum_messages', {'subjectId': document["subject_id"] }) }}'><img src='{{ app.request.getBasePath() }}/{{document["res_icon_location"]}}' width='48px' /></a>
+					{% else %}
+					<a href='{{url}}/resource/open/{{document["type"]}}/{{document["resource_id"]}}'><img src='{{ app.request.getBasePath() }}/{{document["res_icon_location"]}}' width='48px' /></a>
+					{% endif %}
+					{% if document["attr_custom:dailymotion"] != "" %}
+					<a href='{{ document["attr_custom:dailymotion"] }}' target='_new'>Video</a>
+					{% endif %}
+					</td>
+					<td>
+					{% if document["owner"] == false %}
+					<font color='red'>
+					{% else %}
+					<font color='green'>
+					{% endif %}
+					{{document["name"]}}
+					</font>
+					<br /><small>Cours : {{document["wks_name"]}} / Owner : {{document["last_name"]}} {{document["first_name"]}}</small><br/>
+					<i><font color='grey'>{{document["content"]|raw}}...</font></i></td>
+					<td>{{document["content_type"]}}<br /><small>{{document["mime_type"]}}</small></td>
+					<td>
+					{% if document["mime_type"] == "image/png" %}
+					{{document["attr_width"]}}*{{document["attr_height"]}} pixels 
+					{% endif %}
+					{% if (document["mime_type"] == "application/pdf") or (document["mime_type"] == "application/octet-stream") %}
+					{{document["attr_xmpTPg:NPages"]}} pages 
+					{% endif %}
+					{{document["attr_stream_size"]}} octets
+					</td>
+					</tr>
+					<!--
+					<tr><td colspan='4'>
+					{{document["content"]}}
+					</td></tr>
+					-->
+				
+        {% endfor %}
+
+			</tbody>
+			</table>
+		
+		{# Arrondi à faire pour avoir le bon nombre de page #}
+		{% set maxPage = nbResults / nbByPage %}
+		
+		{# A supprimer aprés utilisation arrondi #}
+		{% if maxPage < 1 %}
+		{% set maxPage = 1 %}
+		{% endif %}
+		
+		Page
+		{% for p in 1..maxPage %}
+		{% if p == page %}
+		 <b> {{ p }}</b>
+		 {% else %}
+		  <a href='{{ path('orange_search_request', {'page': p, 'nb': nbByPage}) }}?search={{name}}'>{{p}}</a>
+		 {% endif %}
+		{% endfor %}
+		</div>
+			</div>
+    </div>
+
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

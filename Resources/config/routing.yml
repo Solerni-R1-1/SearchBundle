@@ -1,0 +1,4 @@
+orange_search_bundle:
+    resource: "@OrangeSearchBundle/Controller/"
+    type:     annotation
+    prefix:   /
