@@ -22,7 +22,7 @@ class OrangeSearchBundle extends PluginBundle  implements ConfigurationProviderI
     public function suggestConfigurationFor(Bundle $bundle, $environment)
     {
         $bundleClass = get_class($bundle);
-        var_dump($bundleClass);
+        //var_dump($bundleClass);
         if ($bundleClass == 'Nelmio\SolariumBundle\NelmioSolariumBundle') {
             $config = new ConfigurationBuilder();
             //$config->addContainerResource(__DIR__ . '/Resources/config/solr/config.yml');

@@ -44,7 +44,7 @@ class SearchController extends Controller
     public function configAction()
     {
         $solr_endpoints = $this->container->getParameter('index_endpoint');
-        var_dump($solr_endpoints);
+        //var_dump($solr_endpoints);
     }
 
     /**
