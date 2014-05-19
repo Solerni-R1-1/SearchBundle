@@ -1,0 +1,5 @@
+{ 
+    "num_found" : "{{ resultset.getNumFound() }}",
+    "documents" : {{ documents | json_encode | raw }},
+    "facets" : {{ facets | json_encode | raw }}
+}

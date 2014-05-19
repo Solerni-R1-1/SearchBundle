@@ -11,31 +11,148 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration as EXT;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Orange\SearchBundle\Entity\SearchQuery;
 
 class SearchController extends Controller
 {
+
     private $pagerFactory;
     protected $configSolr;
     private $security;
 
     /**
      * @DI\InjectParams({
-     *     "pagerFactory"        = @DI\Inject("claroline.pager.pager_factory"),
-     *     "security"           = @DI\Inject("security.context")
+     *     "pagerFactory" = @DI\Inject("claroline.pager.pager_factory"),
+     *     "security"     = @DI\Inject("security.context")
      * })
      */
-    public function __construct(
-    PagerFactory $pagerFactory, SecurityContextInterface $security
-    )
+    public function __construct(PagerFactory $pagerFactory, SecurityContextInterface $security)
     {
         $this->pagerFactory = $pagerFactory;
         $this->security = $security;
     }
 
-    public function indexAction()
+    /**
+     * @EXT\Route(
+     *      "/request/page/{page}.{_format}",
+     *      name = "orange_search",
+     *      defaults = {"page"=1, "_format" = "html"},
+     *      requirements = {"_format" = "json|html", "page" = "\d+"}
+     * )
+     *
+     * @return Response
+     */
+    public function indexAction($page)
     {
+        $searchQuery = new SearchQuery();
+        $form = $this->createFormBuilder($searchQuery)
+                ->add('fullText', 'text', array('required' => false, 'attr' => array('class' => "form-control")))
+                ->getForm();
+
+        $request = $this->getRequest();
+        $_format = $request->getRequestFormat();
+        $filterByTypeName = $this->getRequest()->get('filter_type_name');
+        $nbByPage = $this->getRequest()->get('nb_by_page') ? $this->getRequest()->get('nb_by_page') : 10;
+        $client = $this->get('solarium.client');
+        // get a select query instance
+        $query = $client->createSelect();
+        $query->setStart(((int) $page - 1) * $nbByPage)->setRows($nbByPage);
+        $query->setOmitHeader(false);
+
+        if ($request->getMethod() == 'GET') {
+            $form->bind($request);
+            if ($form->isValid() && $searchQuery->getFullText()) {
+                //$query->setQuery('content:*' . $searchQuery->getFullText() . '*');
+                $query->setQuery('content:'.$searchQuery->getFullText());
+            } else {
+                $query->setQuery('*');
+            }
+        }
         
+        // get highlighting component and apply settings
+        $hl = $query->getHighlighting();
+        $hl->setFragsize(300);
+        $hl->setFields('content');
+        $hl->setSimplePrefix('<b>');
+        $hl->setSimplePostfix('</b>');
+        
+        // get the facetset component
+        $facetSet = $query->getFacetSet();
+        // create a facet field instance and set options
+        $facetSet->createFacetField('type')->setField('type_name');
+        $facetSet->createFacetField('owner')->setField('owner_id');
+        // this executes the query and returns the result
+        
+        // Filtrage
+        if (($filterByTypeName != "all") && ($filterByTypeName != "")) {
+            $query->createFilterQuery('type_name')->setQuery('type_name:' . $filterByTypeName);
+        }
+        
+        $resultset = $client->select($query);
+        $highlighting = $resultset->getHighlighting();
+        
+        $documents = array();
+        foreach ($resultset as $document) {
+            $doc = array();
+            foreach ($document->getFields() as $field => $value) {
+                $doc[$field] = $value;
+            }
+            $highlightedDoc = $highlighting->getResult($document->id);
+            if ($highlightedDoc) {
+                foreach ($highlightedDoc as $field => $highlight) {
+                    $doc[$field] =  implode(' (...)', $highlight);
+                }
+            }
+            $documents [] = $doc;
+        }
+
+        $facets = array();
+        foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
+            foreach ($facet as $name => $count) {
+                $facets[$key][] = array('count' => $count, 'value' => $name);
+            }
+        }
+
+        return $this->render(
+            'OrangeSearchBundle:Search:response.' . $_format . '.twig', 
+                array(
+                    'resultset' => $resultset,
+                    'documents' => $documents,
+                    'facets' => $facets,
+                    'form' => $form->createView()
+                )
+        );
     }
+
+    /**
+     * @EXT\Route(
+     *     "/json",
+     *     name = "orange_search_rq"
+     * )
+     * 
+
+      public function search()
+      {
+      $client = $this->get('solarium.client');
+      // get a select query instance
+      $query = $client->createQuery($client::QUERY_SELECT);
+
+      // this executes the query and returns the result
+      $resultsset = $client->execute($query);
+      $results = array();
+
+      foreach ($resultsset as $document) {
+      $doc = array();
+      foreach ($document->getFields() as $key => $value) {
+      $doc[$key] = $value;
+      }
+      $results [] = $doc;
+      }
+
+      return new Response(json_encode($results));
+      }
+     */
 
     /**
      * @EXT\Route("/config")
@@ -53,7 +170,7 @@ class SearchController extends Controller
      *     name = "orange_search_ping"
      * )
      *
-     * @EXT\Template("OrangeSearchBundle:AdminSolr:ping.html.twig")
+     * @EXT\Template("OrangeSearchBundle:AdminSolr:index.html.twig")
      *
      * @return Response
      */
@@ -61,9 +178,7 @@ class SearchController extends Controller
     {
         $this->assertIsGranted('ROLE_USER');
 
-        $configSolr = $this->getSolrConfig();
-
-        $client = new \Solarium\Client($configSolr);
+        $client = $this->get('solarium.client');
         $ping = $client->createPing();
 
         try {
@@ -79,10 +194,9 @@ class SearchController extends Controller
         }
     }
 
-
     /**
      * @EXT\Route(
-     *     "/request/page/{page}",
+     *     "/requeshjgt/page/{page}",
      *     name = "orange_search_request",
      *     defaults={"page"=1}
      * )
@@ -91,16 +205,15 @@ class SearchController extends Controller
      *
      * @return Response
      */
-    public function requestAction($page, $nbByPage)
+    public function requestAction($page, $nbByPage = 50)
     {
         $search = $this->getRequest()->get('search');
         $filterType = $this->getRequest()->get('filter_type');
         $this->assertIsGranted('ROLE_USER');
 
-        $client = new \Solarium\Client($this->getSolrConfig());
+        $client = $this->get('solarium.client');
         $ping = $client->createPing();
-        $nbByPage = 10;
-
+        $manager = $this->getDoctrine()->getManager();
         try {
             $result = $client->ping($ping);
 
@@ -228,29 +341,12 @@ class SearchController extends Controller
             echo 'Ping query failed';
         }
     }
+
     private function assertIsGranted($attributes, $object = null)
     {
         if (false === $this->security->isGranted($attributes, $object)) {
             throw new AccessDeniedException();
         }
-    }
-
-    /*
-     * get solr host config
-     * 
-     * @return array config
-     */
-    private function getSolrConfig()
-    {
-        return array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $this->container->getParameter('solr.host'),
-                    'port' => $this->container->getParameter('solr.port'),
-                    'path' => $this->container->getParameter('solr.path')
-                )
-            )
-        );
     }
 
 }

@@ -23,9 +23,7 @@ class IndexerCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $em = $this->getContainer()->get('doctrine')->getManager();
-        $configSolr = $this->getConfig();
-        //$client = $this->getContainer()->get('solarium.client');
-        $client = new \Solarium\Client($configSolr);
+        $client = $this->getContainer()->get('solarium.client');
         
         // index all entries
         $toIndexList = $em->getRepository('OrangeSearchBundle:SyncIndex')->findByStatus(1);
@@ -77,24 +75,6 @@ class IndexerCommand extends ContainerAwareCommand
         
         $em->flush();
         $output->writeln('Done');
-    }
-    
-    /*
-     * get solr host config
-     * 
-     * @return array config
-     */
-    private function getConfig()
-    {
-        return array(
-            'endpoint' => array(
-                'localhost' => array(
-                    'host' => $this->getContainer()->getParameter('solr.host'),
-                    'port' => $this->getContainer()->getParameter('solr.port'),
-                    'path' => $this->getContainer()->getParameter('solr.path')
-                )
-            )
-        );
     }
 
 }
