@@ -1,0 +1,56 @@
+{% set layout = "ClarolineCoreBundle:Workspace:layout.html.twig" %}
+
+
+{% extends layout %}
+
+{% block leftSide %}
+{% endblock %}
+
+
+
+{% block section_content %}
+{#% javascripts '@OrangeSearchBundle/Resources/public/js/*' %}
+    <script type="text/javascript" src="{{ asset_url }}"></script>
+{% endjavascripts %#}
+
+{% stylesheets '@OrangeSearchBundle/Resources/public/css/*' filter='cssrewrite' %}
+    <link rel="stylesheet" href="{{ asset_url }}" />
+{% endstylesheets %}
+    
+<div class="panel-heading">
+    <h3 class="panel-title">{{ 'Liste résultats'|trans({}, 'search') }}</h3>
+</div>
+<div class="panel-body">
+    <div class="col-md-4">
+        {% for name, facet in facets%}
+        <h3>{{name}}</h3>
+        <ul>
+            {% for item in facet %}
+            <li> {{ item.value }} ({{item.count}})</li>
+            {% endfor %}
+        </ul>
+        {%endfor%}
+    </div>
+    <div class="col-md-8">
+        <form method="GET" {{ form_enctype(form) }}>
+           
+            <div class="input-group">
+                {{ form_widget(form.fullText) }}
+                <div class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><i class="icon-search"></i></button>
+                </div>
+            </div>
+
+            {{ form_rest(form) }}
+        </form>
+
+        <p>Nombre de résultats : {{ resultset.getNumFound() }}</p>
+        <ul class="slrn-sr">
+            {% for document in documents %}
+                {% render(controller('OrangeSearchBundle:Result:documentView', {'document' : document, 'debug' : false}))%}
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+{% endblock %}

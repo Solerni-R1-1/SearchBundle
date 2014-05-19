@@ -20,16 +20,25 @@ class SearchListener extends ContainerAware
     public function preRemove(LifecycleEventArgs $event)
     {
         $entity = $event->getEntity();
+        $logger = $this->container->get('logger');
+        
         if (($entity instanceof IndexableInterface)) {
+            $logger->info('Remove Indexable Entity ' . get_class($entity));
             $em = $this->container->get('doctrine')->getManager();
-            $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')->findOneByEntityId($entity->getId());
-
+            $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')
+                            ->findOneBy(
+                                array(
+                                    'entityId' => $entity->getId(),
+                                    'className' => get_class($entity)
+                                )
+                            );
             // Status 
             // 1 : Not Indexed
             // 2 : Indexed
             // 3 : Deleted
 
             if ($syncIndex) {
+                //$logger->info('Sync index status : ' .$syncIndex->getStatus());
                 if ($syncIndex->getStatus() == 2) {
                     $syncIndex->setStatus(3);
                     $em->persist($syncIndex);
@@ -37,6 +46,8 @@ class SearchListener extends ContainerAware
                     $em->remove($syncIndex);
                 }
                 $em->flush();
+            } else {
+                $logger->info('No Indexable Entity to remove ' . get_class($entity) .' id => '. $entity->getId());
             }
         }
     }
@@ -62,15 +73,21 @@ class SearchListener extends ContainerAware
     public function postPersist(LifecycleEventArgs $event)
     {
         $entity = $event->getEntity();
-
         $logger = $this->container->get('logger');
-        
+
         if (($entity instanceof IndexableInterface)) {
             
-            $logger->info('Persist Entity class name '. get_class($entity));
+            $logger->info('Persist Indexable Entity '. get_class($entity));
             $em = $this->container->get('doctrine')->getManager();
             //check if exist -- update
-            $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')->findOneByEntityId($entity->getId());
+            $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')
+                            ->findOneBy(
+                                array(
+                                    'entityId' => $entity->getId(),
+                                    'className' => get_class($entity)
+                                )
+                            );
+ 
             if (!$syncIndex) {
                 $syncIndex = new SyncIndex();
             }

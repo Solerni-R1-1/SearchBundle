@@ -1,0 +1,14 @@
+{# empty Twig template #}
+{% extends "OrangeSearchBundle:Search:result/layout.html.twig" %}
+
+{% block result_element %}
+<li class="slrn-sr-elmnt">
+    <div class="slrn-sr-elmnt-header"> FORUM | {{ document.forum_name }} | {{ document.owner_name }}</div>
+    <h3>{{ document.forum_subject_name }}</h3>
+    <div class="slrn-sr-elmnt-date">
+        <span class="slrn-sr-elmnt-date-creation"><i class="icon-flag"></i> {{ 'create_at'|trans({}, 'search') }} {{ document.creation_date | date("m/d/Y") }}</span>
+        <span class="slrn-sr-elmnt-date-modification"><i class="icon-pencil"></i> {{ 'edit_at'|trans({}, 'search') }} {{ document.modification_date | date("m/d/Y") }}</span>
+    </div>
+    <div>{{ document.content | truncate(500) | raw}}</div>
+</li>
+{% endblock result_element %}

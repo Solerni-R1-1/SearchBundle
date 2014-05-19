@@ -1,0 +1,29 @@
+{# empty Twig template #}
+
+{% block result_element %}
+    
+{% endblock result_element %}
+
+{% block debug %}
+    {% if debug %} 
+<div class="table-responsive">
+    <table id="subjects_table" class="table table-striped table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>{{ 'parameter'|trans({}, 'search') }}</th>
+                <th>{{ 'value'|trans({}, 'search') }}</th>
+            </tr>
+        </thead>
+        <tbody id="table-subjects-body">
+                    {% for field,value in document %}
+                      {% if value[0] is not defined %}
+            <tr><th> {{ field }} </th><td> {{ value }} </td></tr>
+                      {% else %}
+            <tr><th> {{ field }} </th><td> {{ value|join(',') }} </td></tr>
+                      {% endif %}
+                    {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% endif %}
+{% endblock %}

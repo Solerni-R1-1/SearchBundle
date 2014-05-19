@@ -1,0 +1,11 @@
+nelmio_solarium:
+    endpoints:
+        default:
+            host: localhost
+            port: 8983
+            path: /solr
+            core: core0
+            timeout: 5
+    clients:
+        default:
+            endpoints: [default]

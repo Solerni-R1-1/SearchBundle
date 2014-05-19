@@ -1,0 +1,31 @@
+.slrn-sr-elmnt  {
+    background-color: #efefef;
+    padding : 1em;
+    margin-top: 1em;
+    
+}
+.slrn-sr-elmnt h1 {
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.slrn-sr-elmnt-date {
+    margin-top: 1em;
+}
+
+.slrn-sr-elmnt-date-creation {
+  margin-right: 2em;  
+}
+
+.slrn-sr-elmnt-date-modification {
+    
+}
+
+.slrn-sr {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.slrn-sr-elmnt-header {
+    text-transform:uppercase;
+}
