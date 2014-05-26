@@ -13,6 +13,9 @@ Configuration files are available [here][3]
 ### SearchBundle installation
 - to be completed
 
+### SearchBundle Commande
+    app/console claroline:indexer:sync
+    app/console claroline:indexer:reindex (dev)
 
 [1]:http://lucene.apache.org/solr/
 [2]:http://lucene.apache.org/solr/tutorial.html
