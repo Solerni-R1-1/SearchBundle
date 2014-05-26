@@ -1,56 +1,65 @@
 {% set layout = "ClarolineCoreBundle:Workspace:layout.html.twig" %}
 
-
 {% extends layout %}
 
 {% block leftSide %}
 {% endblock %}
 
-
-
 {% block section_content %}
-{#% javascripts '@OrangeSearchBundle/Resources/public/js/*' %}
-    <script type="text/javascript" src="{{ asset_url }}"></script>
-{% endjavascripts %#}
-
-{% stylesheets '@OrangeSearchBundle/Resources/public/css/*' filter='cssrewrite' %}
-    <link rel="stylesheet" href="{{ asset_url }}" />
-{% endstylesheets %}
+<div 
+    ng-app="searchApp" ng-controller="ngSearchCtrl">
     
-<div class="panel-heading">
-    <h3 class="panel-title">{{ 'Liste résultats'|trans({}, 'search') }}</h3>
-</div>
-<div class="panel-body">
-    <div class="col-md-4">
-        {% for name, facet in facets%}
-        <h3>{{name}}</h3>
-        <ul>
-            {% for item in facet %}
-            <li> {{ item.value }} ({{item.count}})</li>
-            {% endfor %}
-        </ul>
-        {%endfor%}
+    <div id="slrn-wrapper">
+        <div id="slrn-loader"></div>
     </div>
-    <div class="col-md-8">
-        <form method="GET" {{ form_enctype(form) }}>
-           
-            <div class="input-group">
-                {{ form_widget(form.fullText) }}
-                <div class="input-group-btn">
-                    <button class="btn btn-default" type="submit"><i class="icon-search"></i></button>
-                </div>
-            </div>
+    
+    {% stylesheets '@OrangeSearchBundle/Resources/public/css/*' filter='cssrewrite' %}
+        <link rel="stylesheet" href="{{ asset_url }}" />
+    {% endstylesheets %}
 
-            {{ form_rest(form) }}
-        </form>
-
-        <p>Nombre de résultats : {{ resultset.getNumFound() }}</p>
-        <ul class="slrn-sr">
-            {% for document in documents %}
-                {% render(controller('OrangeSearchBundle:Result:documentView', {'document' : document, 'debug' : false}))%}
-            {% endfor %}
-        </ul>
+    <div class="panel-heading">
+        <div class="col-md-12"
+             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-box/view.html')}}'"
+             ng-controller="searchBoxCtrl">
+        </div>
     </div>
-
+    <div class="panel-body">
+        <div class="col-md-4"
+             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/view.html')}}'"
+             ng-controller="searchFiltersCtrl">
+        </div>
+        <div class="col-md-8"
+             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-results/view.html')}}'"
+             ng-controller="searchResultsCtrl">
+        </div>
+    </div>
+        
+    <div class="panel-footer">
+        <div class="col-md-8 col-md-offset-4"
+             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'"
+             ng-controller="searchPagerCtrl">
+        </div>
+    </div>
 </div>
 {% endblock %}
+
+{%block javascripts%}
+    {{ parent() }}
+    <script type="text/javascript" src="{{ url('bazinga_exposetranslation_js', { 'domain_name': 'search' }, true ) }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/angular.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/angular-resource.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/angular-sanitize.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-utils-ieshiv.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-utils.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-bootstrap-tpls-0.11.0.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/ng-search.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/trans.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/factories/data-search-factory.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/services/ng-search-service.js') }}"></script>
+
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/ng-search-ctrl.js') }}"/></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-results/search-results-ctrl.js') }}"/></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-box/search-box-ctrl.js') }}"/></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-filters/search-filters-ctrl.js') }}"/></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-pager/search-pager-ctrl.js') }}"/></script>
+{%endblock%}

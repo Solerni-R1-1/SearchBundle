@@ -1,0 +1,9 @@
+<ul class="slrn-sr">
+    <li 
+        ng-repeat="document in data.results.documents" 
+        track-by="document.id"
+        class="slrn-sr-elmnt">
+
+        <div ng-include src="document.templateUrl" ></div>
+    </li>
+</ul>
