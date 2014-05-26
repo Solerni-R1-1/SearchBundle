@@ -12,7 +12,6 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Orange\SearchBundle\Entity\SearchQuery;
 
 class SearchController extends Controller
 {
@@ -35,59 +34,69 @@ class SearchController extends Controller
 
     /**
      * @EXT\Route(
-     *      "/request/page/{page}.{_format}",
+     *      "/query.{_format}",
      *      name = "orange_search",
-     *      defaults = {"page"=1, "_format" = "html"},
-     *      requirements = {"_format" = "json|html", "page" = "\d+"}
+     *      defaults = {"_format" = "html"},
+     *      requirements = {"_format" = "json|html"}
      * )
      *
      * @return Response
      */
-    public function indexAction($page)
+    public function indexAction()
     {
-        $searchQuery = new SearchQuery();
-        $form = $this->createFormBuilder($searchQuery)
-                ->add('fullText', 'text', array('required' => false, 'attr' => array('class' => "form-control")))
-                ->getForm();
-
+        $logger = $this->container->get('logger');
+        
         $request = $this->getRequest();
         $_format = $request->getRequestFormat();
-        $filterByTypeName = $this->getRequest()->get('filter_type_name');
-        $nbByPage = $this->getRequest()->get('nb_by_page') ? $this->getRequest()->get('nb_by_page') : 10;
+        $page = $this->getRequest()->get('page') ? $this->getRequest()->get('page') : 1;
+        $keywords = $this->getRequest()->get('keywords');
+        $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
+        $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
         $client = $this->get('solarium.client');
         // get a select query instance
         $query = $client->createSelect();
-        $query->setStart(((int) $page - 1) * $nbByPage)->setRows($nbByPage);
+        $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
         $query->setOmitHeader(false);
 
-        if ($request->getMethod() == 'GET') {
-            $form->bind($request);
-            if ($form->isValid() && $searchQuery->getFullText()) {
-                //$query->setQuery('content:*' . $searchQuery->getFullText() . '*');
-                $query->setQuery('content:'.$searchQuery->getFullText());
+        if ($request->getMethod() == 'POST') {
+
+            if ($keywords) {
+                $query->setQuery('content:'.$keywords);
             } else {
                 $query->setQuery('*');
             }
         }
-        
         // get highlighting component and apply settings
         $hl = $query->getHighlighting();
         $hl->setFragsize(300);
         $hl->setFields('content');
-        $hl->setSimplePrefix('<b>');
-        $hl->setSimplePostfix('</b>');
+        $hl->setSimplePrefix('<mark>');
+        $hl->setSimplePostfix('</mark>');
+        
+        /* Filtrage */
+        foreach ($filters as $name => $values) {
+            $expression = array();
+            foreach ($values as $key => $value) {
+                if ($value == false) {
+                    $expression [] = $name.':"'.$key.'"';
+                }
+            }
+            if ($expression) {
+                $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
+            }
+        }
+        
+        //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
+        //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
         
         // get the facetset component
         $facetSet = $query->getFacetSet();
         // create a facet field instance and set options
-        $facetSet->createFacetField('type')->setField('type_name');
-        $facetSet->createFacetField('owner')->setField('owner_id');
-        // this executes the query and returns the result
+        $facetSet->createFacetField('type_name')->setField('type_name');
+        $facetSet->createFacetField('owner_name')->setField('owner_name');
+        $facetSet->createFacetField('wks_id')->setField('wks_id');
         
-        // Filtrage
-        if (($filterByTypeName != "all") && ($filterByTypeName != "")) {
-            $query->createFilterQuery('type_name')->setQuery('type_name:' . $filterByTypeName);
-        }
+ 
         
         $resultset = $client->select($query);
         $highlighting = $resultset->getHighlighting();
@@ -109,9 +118,13 @@ class SearchController extends Controller
 
         $facets = array();
         foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
+            $tmp = array('name' => $key);
+
             foreach ($facet as $name => $count) {
-                $facets[$key][] = array('count' => $count, 'value' => $name);
+                 $tmp ['value'] []= array('count' => $count, 'value' => $name);
             }
+            $facets [] = $tmp;
+            
         }
 
         return $this->render(
@@ -119,8 +132,7 @@ class SearchController extends Controller
                 array(
                     'resultset' => $resultset,
                     'documents' => $documents,
-                    'facets' => $facets,
-                    'form' => $form->createView()
+                    'facets' => $facets
                 )
         );
     }

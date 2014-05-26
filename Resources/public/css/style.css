@@ -1,15 +1,16 @@
 .slrn-sr-elmnt  {
-    background-color: #efefef;
+    background-color: #f1f1f1;
     padding : 1em;
     margin-top: 1em;
     
 }
-.slrn-sr-elmnt h1 {
-    font-size: 1.5em;
+.slrn-sr-elmnt h3 {
+    font-size: 1.3em;
     margin: 0;
 }
 
 .slrn-sr-elmnt-date {
+    font-size: 0.9em;
     margin-top: 1em;
 }
 
@@ -28,4 +29,29 @@
 
 .slrn-sr-elmnt-header {
     text-transform:uppercase;
+}
+
+mark {
+    background-color: #fbf069;
+}
+
+#slrn-wrapper {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    top : 0;
+    left: 0;
+    z-index: 10000;
+    background-color: rgba(200,200,200, 0.5);
+}
+
+#slrn-loader {
+    position: absolute;
+    top: 50%;
+    left:50%;
+    margin-top: -32px;
+    margin-left: -32px;
+    width: 64px;
+    height: 64px;
+    background: transparent url(/bundles/orangesearch/images/loader.gif) no-repeat 0 0;
 }
