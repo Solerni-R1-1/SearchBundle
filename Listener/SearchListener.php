@@ -21,10 +21,12 @@ class SearchListener extends ContainerAware
     {
         $entity = $event->getEntity();
         $logger = $this->container->get('logger');
+        $em = $this->container->get('doctrine')->getManager();
+        $isToIndex = $em->getRepository('OrangeSearchBundle:EntityToIndex')
+                        ->isToIndex(get_class($entity));
         
-        if (($entity instanceof IndexableInterface)) {
+        if (($entity instanceof IndexableInterface) && $isToIndex) {
             $logger->info('Remove Indexable Entity ' . get_class($entity));
-            $em = $this->container->get('doctrine')->getManager();
             $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')
                             ->findOneBy(
                                 array(
@@ -74,11 +76,14 @@ class SearchListener extends ContainerAware
     {
         $entity = $event->getEntity();
         $logger = $this->container->get('logger');
+        
+        $em = $this->container->get('doctrine')->getManager();
+        $isToIndex = $em->getRepository('OrangeSearchBundle:EntityToIndex')
+                        ->isToIndex(get_class($entity));
 
-        if (($entity instanceof IndexableInterface)) {
+        if (($entity instanceof IndexableInterface) && $isToIndex) {
             
             $logger->info('Persist Indexable Entity '. get_class($entity));
-            $em = $this->container->get('doctrine')->getManager();
             //check if exist -- update
             $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')
                             ->findOneBy(

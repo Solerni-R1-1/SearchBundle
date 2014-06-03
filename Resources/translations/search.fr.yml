@@ -19,3 +19,5 @@ custom/icap_wiki: Wiki
 custom/ujm_exercise: Exercice
 create_at: Crée le
 edit_at: Modif.
+indexer_admin: Indexer Adminstration 
+select_indexable_entities: Selectionner les entitées à indexer
