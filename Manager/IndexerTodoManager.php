@@ -12,10 +12,12 @@
 namespace Orange\SearchBundle\Manager;
 
 use JMS\DiExtraBundle\Annotation as DI;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Claroline\CoreBundle\Entity\IndexableInterface;
 use Orange\SearchBundle\Entity\SyncIndex;
 use Doctrine\Common\Util\ClassUtils;
+use Doctrine\ORM\EntityManager;
+use Symfony\Bridge\Monolog\Logger;
+use Symfony\Component\Security\Core\SecurityContextInterface;
 
 /**
  * @DI\Service("orange.search.indexer_todo_manager")
@@ -35,7 +37,9 @@ class IndexerTodoManager
      * })
      */
     public function __construct(
-    \Doctrine\ORM\EntityManager $entityManager, \Symfony\Bridge\Monolog\Logger $logger, \Symfony\Component\Security\Core\SecurityContextInterface $security
+        EntityManager $entityManager, 
+        Logger $logger, 
+        SecurityContextInterface $security
     )
     {
         $this->entityManager = $entityManager;
@@ -58,11 +62,9 @@ class IndexerTodoManager
     {
         try {
             $className = ClassUtils::getClass($entity);
-            $isToIndex = $this->entityManager
+            if ($this->entityManager
                     ->getRepository('OrangeSearchBundle:EntityToIndex')
-                    ->isToIndex($className);
-
-            if (($entity instanceof IndexableInterface) && $isToIndex) {
+                    ->isToIndex($className)) {
 
                 $this->logger->info('Persist Indexable Entity ' . $className);
                 //check if exist -- update
@@ -89,16 +91,16 @@ class IndexerTodoManager
         }
     }
 
+    
     public function toDelete($entity)
     {
 
         try {
             $className = ClassUtils::getClass($entity);
-            $isToIndex = $this->entityManager
+            if ($this->entityManager
                     ->getRepository('OrangeSearchBundle:EntityToIndex')
-                    ->isToIndex($className);
-
-            if (($entity instanceof IndexableInterface) && $isToIndex) {
+                    ->isToIndex($className)) {
+                
                 $this->logger->info('Remove Indexable Entity ' . $className);
                 $syncIndex = $this->entityManager
                         ->getRepository('OrangeSearchBundle:SyncIndex')

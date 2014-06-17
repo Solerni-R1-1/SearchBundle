@@ -17,9 +17,11 @@ class SearchListener extends ContainerAware
      */
     public function preRemove(LifecycleEventArgs $event)
     {
-        $this->container
-             ->get('orange.search.indexer_todo_manager')
-             ->toDelete($event->getEntity());
+        if (($event->getEntity() instanceof IndexableInterface)) {
+            $this->container
+                 ->get('orange.search.indexer_todo_manager')
+                 ->toDelete($event->getEntity());
+        }
     }
 
     /**
@@ -42,9 +44,11 @@ class SearchListener extends ContainerAware
      */
     public function postPersist(LifecycleEventArgs $event)
     {
-        $this->container
-             ->get('orange.search.indexer_todo_manager')
-             ->toIndex($event->getEntity());
+        if (($event->getEntity() instanceof IndexableInterface)) {
+            $this->container
+                 ->get('orange.search.indexer_todo_manager')
+                 ->toIndex($event->getEntity());
+        }
     }
 
     /**
