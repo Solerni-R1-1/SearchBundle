@@ -10,20 +10,20 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 /**
  * This class contains common methods for the plugin install/uninstall commands.
  */
-class IndexerCommand extends ContainerAwareCommand
+class RequeueAllCommand extends ContainerAwareCommand
 {
 
     protected function configure()
     {
         parent::configure();
-        $this->setName('claroline:indexer:sync')
-             ->setDescription('Synchronise db solr entities');
+        $this->setName('claroline:indexer:requeue')
+             ->setDescription('Reindexer toute les entité');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
        $indexerManager = $this->getContainer()->get('orange.search.indexer_manager');
-       $indexerManager->sync();
+       $indexerManager->requeueAll();
        foreach ($indexerManager->getReports() as $report) {
            $output->writeln($report);
        }
