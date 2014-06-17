@@ -14,7 +14,7 @@ class EntityToIndexRepository extends EntityRepository
 {
 
     public function isToIndex($className)
-    {
+    {   
         $entity = $this->findOneByClassName($className);
         if ($entity) {
             return $entity->getToIndex();
@@ -22,5 +22,4 @@ class EntityToIndexRepository extends EntityRepository
             return false;
         }
     }
-
 }

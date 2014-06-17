@@ -1,5 +1,5 @@
-<div class="slrn-sr-elmnt-header"> FORUM | {{ document.forum_name }} | {{ document.owner_name }}</div>
-<h3>{{ document.forum_subject_name }}</h3>
+<div class="slrn-sr-elmnt-header"> <a href="{{ document.resource_url|path }}"> FORUM | {{ document.forum_name }}</a> | {{ document.owner_name }}</div>
+<h3><a href="{{ document.forum_subject_url|path }}">{{ document.forum_subject_name }}</a></h3>
 <div class="slrn-sr-elmnt-date">
     <span class="slrn-sr-elmnt-date-creation">
         <i class="icon-flag"></i> {{ 'create_at'|trans }} {{ document.creation_date | date : 'MM/dd/yyyy' }}

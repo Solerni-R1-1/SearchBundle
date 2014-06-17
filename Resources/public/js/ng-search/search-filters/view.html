@@ -1,6 +1,6 @@
 <div 
     ng-repeat="facet in data.results.facets">
-    <h3>{{ facet.name }}</h3>
+    <h3>{{ facet.label}}</h3>
     <ul>
 
         <li 
@@ -11,7 +11,7 @@
                 ng-change="search(data.query)" 
                 ng-model="data.query.filters[facet.name][elmnt.value]"/> 
             
-            <label>{{ elmnt.value + '(' + elmnt.count + ')'}}</label>
+            <label>{{ (elmnt.label) + ' (' + elmnt.count + ')'}}</label>
         </li>
     </ul>
 </div>

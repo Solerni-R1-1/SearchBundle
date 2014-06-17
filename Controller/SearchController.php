@@ -11,25 +11,35 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration as EXT;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\Routing\Router;
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
 
 class SearchController extends Controller
 {
 
     private $pagerFactory;
-    protected $configSolr;
     private $security;
+    private $entityManager;
 
     /**
      * @DI\InjectParams({
-     *     "pagerFactory" = @DI\Inject("claroline.pager.pager_factory"),
-     *     "security"     = @DI\Inject("security.context")
+     *     "pagerFactory"  = @DI\Inject("claroline.pager.pager_factory"),
+     *     "security"      = @DI\Inject("security.context"),
+     *     "entityManager" = @DI\Inject("doctrine.orm.entity_manager"),
+     *     "router"        = @DI\Inject("router")
      * })
      */
-    public function __construct(PagerFactory $pagerFactory, SecurityContextInterface $security)
+    public function __construct(
+            PagerFactory $pagerFactory, 
+            SecurityContextInterface $security,
+            EntityManager $entityManager,
+            Router $router)
     {
         $this->pagerFactory = $pagerFactory;
         $this->security = $security;
+        $this->entityManager = $entityManager;
+        $this->router = $router;
     }
 
     /**
@@ -57,7 +67,7 @@ class SearchController extends Controller
         $query = $client->createSelect();
         $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
         $query->setOmitHeader(false);
-
+        
         if ($request->getMethod() == 'POST') {
 
             if ($keywords) {
@@ -96,32 +106,50 @@ class SearchController extends Controller
         $facetSet->createFacetField('owner_name')->setField('owner_name');
         $facetSet->createFacetField('wks_id')->setField('wks_id');
         
- 
-        
         $resultset = $client->select($query);
         $highlighting = $resultset->getHighlighting();
         
         $documents = array();
         foreach ($resultset as $document) {
             $doc = array();
+            
             foreach ($document->getFields() as $field => $value) {
                 $doc[$field] = $value;
             }
+
+            $resourceId = $doc['resource_id'];
+
+            $resourceNode = $this->entityManager
+                    ->getRepository("ClarolineCoreBundle:Resource\ResourceNode")
+                    ->findOneById($resourceId);
+            
+            $doc['is_granted'] = $this->security->isGranted('OPEN', $resourceNode);
+            
             $highlightedDoc = $highlighting->getResult($document->id);
             if ($highlightedDoc) {
                 foreach ($highlightedDoc as $field => $highlight) {
                     $doc[$field] =  implode(' (...)', $highlight);
                 }
             }
+            if ( ! $doc['is_granted'] ) {
+                $doc['content'] = preg_replace('/[\w|&|?]/', 'x', $doc['content']);
+            }
             $documents [] = $doc;
         }
 
         $facets = array();
         foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
-            $tmp = array('name' => $key);
+            $tmp = array(
+                'name'  => $key,
+                'label' => $this->get('translator')->trans($key)
+            );
 
             foreach ($facet as $name => $count) {
-                 $tmp ['value'] []= array('count' => $count, 'value' => $name);
+                 $tmp ['value'] []= array(
+                        'count' => $count, 
+                        'value' => $name,
+                        'label' => $this->get('translator')->trans($name)
+                 );
             }
             $facets [] = $tmp;
             
@@ -137,34 +165,7 @@ class SearchController extends Controller
         );
     }
 
-    /**
-     * @EXT\Route(
-     *     "/json",
-     *     name = "orange_search_rq"
-     * )
-     * 
-
-      public function search()
-      {
-      $client = $this->get('solarium.client');
-      // get a select query instance
-      $query = $client->createQuery($client::QUERY_SELECT);
-
-      // this executes the query and returns the result
-      $resultsset = $client->execute($query);
-      $results = array();
-
-      foreach ($resultsset as $document) {
-      $doc = array();
-      foreach ($document->getFields() as $key => $value) {
-      $doc[$key] = $value;
-      }
-      $results [] = $doc;
-      }
-
-      return new Response(json_encode($results));
-      }
-     */
+    
 
     /**
      * @EXT\Route("/config")

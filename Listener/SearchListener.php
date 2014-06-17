@@ -5,8 +5,6 @@ namespace Orange\SearchBundle\Listener;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\LifecycleEventArgs;
-use Orange\SearchBundle\Entity\SyncIndex;
-use Claroline\CoreBundle\Entity\IndexableInterface;
 
 /** @param integer $status 
 
@@ -19,39 +17,9 @@ class SearchListener extends ContainerAware
      */
     public function preRemove(LifecycleEventArgs $event)
     {
-        $entity = $event->getEntity();
-        $logger = $this->container->get('logger');
-        $em = $this->container->get('doctrine')->getManager();
-        $isToIndex = $em->getRepository('OrangeSearchBundle:EntityToIndex')
-                        ->isToIndex(get_class($entity));
-        
-        if (($entity instanceof IndexableInterface) && $isToIndex) {
-            $logger->info('Remove Indexable Entity ' . get_class($entity));
-            $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')
-                            ->findOneBy(
-                                array(
-                                    'entityId' => $entity->getId(),
-                                    'className' => get_class($entity)
-                                )
-                            );
-            // Status 
-            // 1 : Not Indexed
-            // 2 : Indexed
-            // 3 : Deleted
-
-            if ($syncIndex) {
-                //$logger->info('Sync index status : ' .$syncIndex->getStatus());
-                if ($syncIndex->getStatus() == 2) {
-                    $syncIndex->setStatus(3);
-                    $em->persist($syncIndex);
-                } else {
-                    $em->remove($syncIndex);
-                }
-                $em->flush();
-            } else {
-                $logger->info('No Indexable Entity to remove ' . get_class($entity) .' id => '. $entity->getId());
-            }
-        }
+        $this->container
+             ->get('orange.search.indexer_todo_manager')
+             ->toDelete($event->getEntity());
     }
 
     /**
@@ -74,36 +42,9 @@ class SearchListener extends ContainerAware
      */
     public function postPersist(LifecycleEventArgs $event)
     {
-        $entity = $event->getEntity();
-        $logger = $this->container->get('logger');
-        
-        $em = $this->container->get('doctrine')->getManager();
-        $isToIndex = $em->getRepository('OrangeSearchBundle:EntityToIndex')
-                        ->isToIndex(get_class($entity));
-
-        if (($entity instanceof IndexableInterface) && $isToIndex) {
-            
-            $logger->info('Persist Indexable Entity '. get_class($entity));
-            //check if exist -- update
-            $syncIndex = $em->getRepository('OrangeSearchBundle:SyncIndex')
-                            ->findOneBy(
-                                array(
-                                    'entityId' => $entity->getId(),
-                                    'className' => get_class($entity)
-                                )
-                            );
- 
-            if (!$syncIndex) {
-                $syncIndex = new SyncIndex();
-            }
-            $syncIndex->setEntityId($entity->getId());
-
-            $syncIndex->setStatus(1);
-            $syncIndex->setClassName(get_class($entity));
-
-            $em->persist($syncIndex);
-            $em->flush();
-        }
+        $this->container
+             ->get('orange.search.indexer_todo_manager')
+             ->toIndex($event->getEntity());
     }
 
     /**
