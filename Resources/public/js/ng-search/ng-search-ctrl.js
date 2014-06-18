@@ -27,7 +27,6 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
             });
         };
 
-
         var _search = function(query) {
             document.getElementById('slrn-wrapper').style.display = 'block';
             console.log(query);
@@ -44,15 +43,6 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
 
         $scope.search = function(query) {
             _search(query);
-        };
-
-        $scope.range = function(start, end, step) {
-            var range = [];
-            while (end >= start) {
-                range.push(start);
-                start += step;
-            }
-            return range;
         };
 
         (function() {

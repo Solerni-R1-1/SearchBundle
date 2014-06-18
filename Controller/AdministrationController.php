@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration as EXT;
 use Claroline\CoreBundle\Entity\IndexableInterface;
 use Orange\SearchBundle\Entity\EntityToIndex;
+use JMS\SecurityExtraBundle\Annotation\Secure;
 
 class AdministrationController extends Controller
 {
@@ -16,13 +17,16 @@ class AdministrationController extends Controller
      *      "/admin/entities",
      *      name = "orange_search_admin"
      * )
+     *
      * @EXT\Template ("OrangeSearchBundle:Administration:index.html.twig")
-     * 
+     *
+     * @Secure(roles="ROLE_ADMIN")
+     *  
      * @return Response
      */
     public function indexAction()
     {
-
+        
         $data = array();
         $indexerManager = $this->get('orange.search.indexer_manager');
         $choices = $indexerManager->getAllResourceIndexableEntities();
