@@ -29,7 +29,7 @@ class AdministrationController extends Controller
         
         $data = array();
         $indexerManager = $this->get('orange.search.indexer_manager');
-        $choices = $indexerManager->getAllResourceIndexableEntities();
+        $choices = $indexerManager->getAllIndexableEntities();
         $form = $this->createFormBuilder($data)
                 ->add('indexableEntityChoices', 'choice', array(
                     'choices' => $choices,

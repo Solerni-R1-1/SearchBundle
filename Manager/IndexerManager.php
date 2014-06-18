@@ -166,30 +166,20 @@ class IndexerManager
     }
     
     /*
-     * Get all Indexable entities from all Claroline Resources
+     * Get all Indexable entities
      */
-    public function getAllResourceIndexableEntities()
+    public function getAllIndexableEntities()
     {
-        $resourceTypes = $this->entityManager->getRepository('ClarolineCoreBundle:Resource\ResourceType')->findAll();
         //all entities
         $entityNames = $this->entityManager->getConfiguration()->getMetadataDriverImpl()->getAllClassNames();
         $choices = array();
 
-        foreach ($resourceTypes as $resourceType) {
-            if ($resourceType->getPlugin()) {
-                //get bundle root
-                $bundleFQCN = explode("\\", $resourceType->getPlugin()->getBundleFQCN());
-                array_pop($bundleFQCN);
-                $bundleRoot = implode("\\", $bundleFQCN);
-
-                foreach ($entityNames as $entityName) {
-                    if (strrpos($entityName, $bundleRoot) !== false &&
-                            array_key_exists('Claroline\CoreBundle\Entity\IndexableInterface', class_implements($entityName))) {
-                        $choices [$entityName] = $entityName;
-                    }
-                }
+        foreach ($entityNames as $entityName) {
+            if (array_key_exists('Claroline\CoreBundle\Entity\IndexableInterface', class_implements($entityName))) {
+                $choices [$entityName] = $entityName;
             }
         }
+
         return $choices;
     }
     
