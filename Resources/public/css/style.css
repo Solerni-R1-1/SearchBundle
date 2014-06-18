@@ -54,3 +54,7 @@ mark {
     width: 64px;
     height: 64px;
 }
+
+#slrn-items-per-page {
+    margin-top: 1em;
+}

@@ -22,6 +22,9 @@
              ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-box/view.html')}}'"
              ng-controller="searchBoxCtrl">
         </div>
+        <div class="col-md-12 "
+             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'">
+        </div>
     </div>
     <div class="panel-body">
         <div class="col-md-4"
@@ -34,10 +37,9 @@
         </div>
     </div>
         
-    <div class="panel-footer">
+    <div class="panel-footer" ng-controller="searchPagerCtrl">
         <div class="col-md-8 col-md-offset-4"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'"
-             ng-controller="searchPagerCtrl">
+             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'">
         </div>
     </div>
 </div>

@@ -103,8 +103,7 @@ class SearchController extends Controller
         $facetSet = $query->getFacetSet();
         // create a facet field instance and set options
         $facetSet->createFacetField('type_name')->setField('type_name');
-        $facetSet->createFacetField('owner_name')->setField('owner_name');
-        $facetSet->createFacetField('wks_id')->setField('wks_id');
+        $facetSet->createFacetField('owner_id')->setField('owner_id');
         
         $resultset = $client->select($query);
         $highlighting = $resultset->getHighlighting();
@@ -141,17 +140,37 @@ class SearchController extends Controller
         foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
             $tmp = array(
                 'name'  => $key,
-                'label' => $this->get('translator')->trans($key)
-            );
-
-            foreach ($facet as $name => $count) {
-                 $tmp ['value'] []= array(
-                        'count' => $count, 
-                        'value' => $name,
-                        'label' => $this->get('translator')->trans($name)
-                 );
+                'label' => $this->get('translator')->trans($key, array(), 'search')
+            );            
+            switch ($key) {
+                case 'type_name':
+                    foreach ($facet as $value => $count) {
+                         $tmp ['value'] []= array(
+                                'count' => $count, 
+                                'value' => $value,
+                                'label' => $this->get('translator')->trans($value, array(), 'search')
+                         );
+                    }
+                    $facets [] = $tmp;
+                    break;
+                case 'owner_id':
+                    foreach ($facet as $value => $count) {
+                    /* @var $owner \Claroline\CoreBundle\Entity\User */
+                    $owner = $this->entityManager
+                        ->getRepository("ClarolineCoreBundle:User")
+                        ->findOneById($value);
+                    
+                         $tmp ['value'] []= array(
+                                'count' => $count, 
+                                'value' => $value,
+                                'label' => $owner->getFirstName() .' '. $owner->getLastName()
+                         );
+                    }
+                    $facets [] = $tmp;
+                
+                default:
+                    break;
             }
-            $facets [] = $tmp;
             
         }
 

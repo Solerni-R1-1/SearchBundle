@@ -47,19 +47,14 @@ class IndexerTodoManager
         $this->security = $security;
     }
 
-    /* public function reindexAll()
-      {
-
-      foreach ($this->getEntityToIndexClassNames() as $entityToIndexClassName) {
-      $entitiesToIndex = $this->entityManager->getRepository($entityToIndexClassName);
-      foreach ($entitiesToIndex as $entityToIndex) {
-      $entityToIndex;
-      }
-      }
-      } */
-
-    public function toIndex($entity)
+    /*
+     * Add entity to the queue with index or update action
+     * 
+     * @param indexable entity
+     */
+    public function toIndex(IndexableInterface $entity)
     {
+        
         try {
             $className = ClassUtils::getClass($entity);
             if ($this->entityManager
@@ -79,10 +74,8 @@ class IndexerTodoManager
                     $syncIndex = new SyncIndex();
                 }
                 $syncIndex->setEntityId($entity->getId());
-
                 $syncIndex->setStatus(1);
                 $syncIndex->setClassName($className);
-
                 $this->entityManager->persist($syncIndex);
                 $this->entityManager->flush();
             }
@@ -91,8 +84,12 @@ class IndexerTodoManager
         }
     }
 
-    
-    public function toDelete($entity)
+    /*
+     * Add entity to the queued with delete action
+     * 
+     * @param indexable entity
+     */
+    public function toDelete(IndexableInterface $entity)
     {
 
         try {
@@ -115,7 +112,6 @@ class IndexerTodoManager
                 // 3 : Deleted
 
                 if ($syncIndex) {
-                    //$logger->info('Sync index status : ' .$syncIndex->getStatus());
                     if ($syncIndex->getStatus() == 2) {
                         $syncIndex->setStatus(3);
                         $this->entityManager->persist($syncIndex);
