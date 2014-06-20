@@ -5,6 +5,7 @@ namespace Orange\SearchBundle\Listener;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\LifecycleEventArgs;
+use Claroline\CoreBundle\Entity\IndexableInterface;
 
 /** @param integer $status 
 
@@ -16,7 +17,7 @@ class SearchListener extends ContainerAware
      * @param LifecycleEventArgs $event
      */
     public function preRemove(LifecycleEventArgs $event)
-    {
+    {   
         if (($event->getEntity() instanceof IndexableInterface)) {
             $this->container
                  ->get('orange.search.indexer_todo_manager')
