@@ -14,25 +14,23 @@ namespace Orange\SearchBundle\Manager;
 use Claroline\CoreBundle\Entity\Event;
 use JMS\DiExtraBundle\Annotation as DI;
 use Symfony\Component\Config\Definition\Exception\Exception;
-
 use Doctrine\ORM\EntityManager;
 use Symfony\Bridge\Monolog\Logger;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Orange\SearchBundle\Manager\IndexerTodoManager;
 use Solarium\Core\Client\Client;
 
-
 /**
  * @DI\Service("orange.search.indexer_manager")
  */
 class IndexerManager
 {
+
     private $entityManager;
     private $logger;
     private $security;
     private $indexerTodoManager;
     private $solariumClient;
-    
     private $progress;
     private $reports;
 
@@ -48,9 +46,9 @@ class IndexerManager
      */
     public function __construct(
         EntityManager $entityManager,
-        Logger $logger,
-        SecurityContextInterface $security,
-        IndexerTodoManager $indexerTodoManager,
+        Logger $logger, 
+        SecurityContextInterface $security, 
+        IndexerTodoManager $indexerTodoManager, 
         Client $solariumClient
     )
     {
@@ -63,74 +61,55 @@ class IndexerManager
         $this->reports = array();
     }
 
-    /**
-     * 
-     */
-    public function sync()
+    public function process($message)
     {
-        
-        // index all entries
-        $toIndexList = $this->entityManager
-                ->getRepository('OrangeSearchBundle:SyncIndex')
-                ->findByStatus(1);
-        
-        foreach ($toIndexList as $toIndex) {
-            $entity = $this->entityManager
-                           ->getRepository($toIndex->getClassName())
-                           ->find($toIndex->getEntityId());
+        switch ($message['action']) {
+            case 'index':
+                $entity = $this->entityManager
+                        ->getRepository($message['class_name'])
+                        ->find($message['entity_id']);
 
-            $update = $this->solariumClient->createUpdate();
-            $doc = $update->createDocument();
-            
-            // fill the index document
-            $doc = $entity->fillIndexableDocument($doc);
-          
-            $update->addDocuments(array($doc));
-            $update->addCommit();
-            
-            // this executes the query and returns the result
-            $result = $this->solariumClient->update($update);
-            
-            // If document is indexed, change the status of SyncIndex entry
-            if ($result->getStatus() == 0) {
-                // Status
-                // 1 : Not Indexed
-                // 2 : Indexed
-                // 3 : Deleted
-                $toIndex->setStatus(2);
-                $toIndex->setDocumentId($doc->id);
-                $this->entityManager->persist($toIndex);
-                $this->reports [] = 'Document '. $doc->id .' indexed';
-            }
+                $update = $this->solariumClient->createUpdate();
+                $doc = $update->createDocument();
+
+                // fill the index document
+                $doc = $entity->fillIndexableDocument($doc);
+
+                $update->addDocuments(array($doc));
+                $update->addCommit();
+
+                // this executes the query and returns the result
+                $result = $this->solariumClient->update($update);
+
+                // If document is indexed, change the status of SyncIndex entry
+                if ($result->getStatus() == 0) {
+                    $this->reports [] = 'Document ' . $doc->id . ' indexed';
+                }
+                break;
+                
+            case 'delete':
+                // We delete the ressource
+                $update = $this->solariumClient->createUpdate();
+                $update->addDeleteQuery('id:' . $message['document_id']);
+                $update->addCommit();
+                $result = $this->solariumClient->update($update);
+
+                // If document is Deleted, remove SyncIndex entry
+                if ($result->getStatus() == 0) {
+                    $this->reports [] = 'Document ' . $message['document_id'] . ' deleted';
+                }
+
+            default:
+                break;
         }
-        
-        // Delete
-        $toDeleteList = $this->entityManager
-                ->getRepository('OrangeSearchBundle:SyncIndex')
-                ->findByStatus(3);
-        foreach ($toDeleteList as $toDelete) {
-
-            // We delete the ressource
-            $update = $this->solariumClient->createUpdate();
-            $update->addDeleteQuery('id:'.$toDelete->getDocumentId());
-            $update->addCommit();
-            $result = $this->solariumClient->update($update);
-
-            // If document is Deleted, remove SyncIndex entry
-            if ($result->getStatus() == 0) {
-                $this->reports [] = 'Document '. $toDelete->getDocumentId() .' deleted';
-                $this->entityManager->remove($toDelete);
-            }
-        }
-        
-        $this->entityManager->flush();
-        $this->reports [] = 'Done';
     }
+
     
     /*
      *  
      * 
      */
+
     public function requeueAll()
     {
         foreach ($this->getEntityToIndexClassNames() as $entityToIndexClassName) {
@@ -142,13 +121,11 @@ class IndexerManager
         $this->reports [] = "Done";
     }
 
-    
     public function getReports()
     {
         return $this->reports;
     }
-    
-    
+
     /**
      *  Insert or update entity to index
      * 
@@ -158,16 +135,17 @@ class IndexerManager
         $entityToIndex = $this->entityManager->getRepository('OrangeSearchBundle:EntityToIndex')->findOneByClassName($className);
         if (!$entityToIndex) {
             $entityToIndex = new EntityToIndex();
-        } 
+        }
         $entityToIndex->setClassName($className);
         $entityToIndex->setToIndex($isToIndex);
-        
+
         $this->entityManager->persist($entityToIndex);
     }
-    
+
     /*
      * Get all Indexable entities
      */
+
     public function getAllIndexableEntities()
     {
         //all entities
@@ -182,7 +160,7 @@ class IndexerManager
 
         return $choices;
     }
-    
+
     public function getEntityToIndexClassNames()
     {
         $classNames = array();
@@ -192,5 +170,5 @@ class IndexerManager
         }
         return $classNames;
     }
-      
-} 
+
+}

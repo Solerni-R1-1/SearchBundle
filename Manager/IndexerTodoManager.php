@@ -28,6 +28,7 @@ class IndexerTodoManager
     private $entityManager;
     private $security;
     private $logger;
+    private $sender;
 
     /**
      * @DI\InjectParams({
@@ -45,6 +46,10 @@ class IndexerTodoManager
         $this->entityManager = $entityManager;
         $this->logger = $logger;
         $this->security = $security;
+        
+        $ctx = new \ZMQContext();
+        $this->sender = new \ZMQSocket($ctx, \ZMQ::SOCKET_PUSH);
+        $this->sender->connect("tcp://localhost:11111");
     }
 
     /*
@@ -61,23 +66,15 @@ class IndexerTodoManager
                     ->getRepository('OrangeSearchBundle:EntityToIndex')
                     ->isToIndex($className)) {
 
-                $this->logger->info('Persist Indexable Entity ' . $className);
-                //check if exist -- update
-                $syncIndex = $this->entityManager
-                        ->getRepository('OrangeSearchBundle:SyncIndex')
-                        ->findOneBy(array(
-                    'entityId' => $entity->getId(),
-                    'className' => $className
-                ));
-
-                if (!$syncIndex) {
-                    $syncIndex = new SyncIndex();
-                }
-                $syncIndex->setEntityId($entity->getId());
-                $syncIndex->setStatus(1);
-                $syncIndex->setClassName($className);
-                $this->entityManager->persist($syncIndex);
-                $this->entityManager->flush();
+                $this->logger->info('Send index message ' . $className);
+                
+                $message = array(
+                    'entity_id' => $entity->getId(),
+                    'class_name' => $className,
+                    'document_id'=> $entity->getIndexableDocId(),
+                    'action' => 'index'
+                );
+                $this->sender->send(json_encode($message));
             }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
@@ -98,30 +95,15 @@ class IndexerTodoManager
                     ->getRepository('OrangeSearchBundle:EntityToIndex')
                     ->isToIndex($className)) {
                 
-                $this->logger->info('Remove Indexable Entity ' . $className);
-                $syncIndex = $this->entityManager
-                        ->getRepository('OrangeSearchBundle:SyncIndex')
-                        ->findOneBy(
-                        array(
-                            'entityId' => $entity->getId(),
-                            'className' => $className
-                ));
-                // Status 
-                // 1 : Not Indexed
-                // 2 : Indexed
-                // 3 : Deleted
-
-                if ($syncIndex) {
-                    if ($syncIndex->getStatus() == 2) {
-                        $syncIndex->setStatus(3);
-                        $this->entityManager->persist($syncIndex);
-                    } else {
-                        $this->entityManager->remove($syncIndex);
-                    }
-                    $this->entityManager->flush();
-                } else {
-                    $this->logger->info('No Indexable Entity to remove ' . $className . ' id => ' . $entity->getId());
-                }
+                $this->logger->info('Send remove message' . $className);
+                
+                $message = array(
+                    'entity_id' => $entity->getId(),
+                    'class_name' => $className,
+                    'document_id'=> $entity->getIndexableDocId(),
+                    'action' => 'delete'
+                );
+                $this->sender->send(json_encode($message));
             }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
