@@ -58,3 +58,7 @@ mark {
 #slrn-items-per-page {
     margin-top: 1em;
 }
+
+.slrn-ul-no-bullet {
+    list-style-type: none;
+}

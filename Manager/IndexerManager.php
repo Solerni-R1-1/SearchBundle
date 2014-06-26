@@ -19,6 +19,7 @@ use Symfony\Bridge\Monolog\Logger;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Orange\SearchBundle\Manager\IndexerTodoManager;
 use Solarium\Core\Client\Client;
+use Orange\SearchBundle\Entity\EntityToIndex;
 
 /**
  * @DI\Service("orange.search.indexer_manager")
@@ -116,6 +117,7 @@ class IndexerManager
             $entitiesToIndex = $this->entityManager->getRepository($entityToIndexClassName)->findAll();
             foreach ($entitiesToIndex as $entityToIndex) {
                 $this->indexerTodoManager->toIndex($entityToIndex);
+                $this->reports [] = "Push " . $entityToIndex->getIndexableDocId();
             }
         }
         $this->reports [] = "Done";

@@ -31,10 +31,10 @@ class SearchController extends Controller
      * })
      */
     public function __construct(
-            PagerFactory $pagerFactory, 
-            SecurityContextInterface $security,
-            EntityManager $entityManager,
-            Router $router)
+        PagerFactory $pagerFactory, 
+        SecurityContextInterface $security,
+        EntityManager $entityManager,
+        Router $router)
     {
         $this->pagerFactory = $pagerFactory;
         $this->security = $security;
