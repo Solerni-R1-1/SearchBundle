@@ -1,0 +1,49 @@
+<div class="presentation__mooc">
+
+    <div class="presentation__mooc__left">
+        <span class="mooc__pic_w ">
+            <img class="mooc__pic"  src="{{ './' + document.mooc_illustration_path | tranfo:'zcrop_225_255' }}" alt=""/>
+        </span>
+        <!--<span class="presentation__mooc__progression__title">Ma progression</span>
+        <span class="presentation__mooc__progression__wrapper">
+            <span class="presentation__mooc__progression__text londrina-solid">0%</span>
+            <span class="presentation__mooc__progression__100">
+                <span class="presentation__mooc__progression__xx" style="width:0%"></span>
+            </span>
+        </span>-->
+    </div>
+    <div class="presentation__mooc__right">
+
+        <div class="presentation__mooc__right__header">
+            <div class="presentation__mooc__right__header__title">{{document.mooc_title | truncate:30}}</div>
+            <div class="presentation__mooc__right__header__subtitle">proposé par Orange</div>
+        </div>
+
+        <div class="presentation__mooc__right__body">
+            <div class="presentation__mooc__right__body__left">
+                <span class="presentation__mooc__right__body__left__theme"></span>
+               
+                <span class="presentation__mooc__right__body__left__desc" ng-bind-html = "document.content | truncate:100" ></span>		
+                <div class="clearfix"></div>
+
+                <a href="#" class="button__link presentation__mooc__right__body__left__link">
+                    <span class="button__link__span presentation__mooc__right__body__left__link__span">
+                        Accéder au cours
+                    </span>
+                </a> 
+            </div>
+            <div class="presentation__mooc__right__body__right">
+                <span class="presentation__mooc__right__body__right__date">
+                    <span class="valign">Début le {{document.start_date | date : 'MM/dd/yyyy'}} pour 10 semaines</span></span>
+                <span class="presentation__mooc__right__body__right__badge">
+                    <span class="valign">Badgeant</span>
+                </span>
+                <span class="presentation__mooc__right__body__right__price">
+                    <span class="valign">
+                        {{document.mooc_cost_i}}
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
