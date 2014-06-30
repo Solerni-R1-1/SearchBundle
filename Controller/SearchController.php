@@ -55,125 +55,133 @@ class SearchController extends Controller
     public function indexAction()
     {
         $logger = $this->container->get('logger');
-        
-        $request = $this->getRequest();
-        $_format = $request->getRequestFormat();
-        $page = $this->getRequest()->get('page') ? $this->getRequest()->get('page') : 1;
-        $keywords = $this->getRequest()->get('keywords');
-        $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
-        $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
-        $client = $this->get('solarium.client');
-        // get a select query instance
-        $query = $client->createSelect();
-        $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
-        $query->setOmitHeader(false);
-        
-        if ($request->getMethod() == 'POST') {
+        try {
 
-            if ($keywords) {
-                $query->setQuery('content:'.$keywords);
-            } else {
-                $query->setQuery('*');
-            }
-        }
-        // get highlighting component and apply settings
-        $hl = $query->getHighlighting();
-        $hl->setFragsize(300);
-        $hl->setFields('content');
-        $hl->setSimplePrefix('<mark>');
-        $hl->setSimplePostfix('</mark>');
-        
-        /* Filtrage */
-        foreach ($filters as $name => $values) {
-            $expression = array();
-            foreach ($values as $key => $value) {
-                if ($value == false) {
-                    $expression [] = $name.':"'.$key.'"';
+            $request = $this->getRequest();
+            $_format = $request->getRequestFormat();
+            $page = $this->getRequest()->get('page') ? $this->getRequest()->get('page') : 1;
+            $keywords = $this->getRequest()->get('keywords');
+            $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
+            $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
+            $client = $this->get('solarium.client');
+            // get a select query instance
+            $query = $client->createSelect();
+            $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
+            $query->setOmitHeader(false);
+
+            if ($request->getMethod() == 'POST') {
+
+                if ($keywords) {
+                    $query->setQuery('content:'.$keywords);
+                } else {
+                    $query->setQuery('*');
                 }
             }
-            if ($expression) {
-                $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
-            }
-        }
-        
-        //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
-        //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
-        
-        // get the facetset component
-        $facetSet = $query->getFacetSet();
-        // create a facet field instance and set options
-        $facetSet->createFacetField('type_name')->setField('type_name');
-        $facetSet->createFacetField('owner_id')->setField('owner_id');
-        
-        $resultset = $client->select($query);
-        $highlighting = $resultset->getHighlighting();
-        
-        $documents = array();
-        foreach ($resultset as $document) {
-            $doc = array();
-            
-            foreach ($document->getFields() as $field => $value) {
-                $doc[$field] = $value;
-            }
+            // get highlighting component and apply settings
+            $hl = $query->getHighlighting();
+            $hl->setFragsize(300);
+            $hl->setFields('content');
+            $hl->setSimplePrefix('<mark>');
+            $hl->setSimplePostfix('</mark>');
 
-            $resourceId = $doc['resource_id'];
-
-            $resourceNode = $this->entityManager
-                    ->getRepository("ClarolineCoreBundle:Resource\ResourceNode")
-                    ->findOneById($resourceId);
-            
-            $doc['is_granted'] = $this->security->isGranted('OPEN', $resourceNode);
-            
-            $highlightedDoc = $highlighting->getResult($document->id);
-            if ($highlightedDoc) {
-                foreach ($highlightedDoc as $field => $highlight) {
-                    $doc[$field] =  implode(' (...)', $highlight);
+            /* Filtrage */
+            foreach ($filters as $name => $values) {
+                $expression = array();
+                foreach ($values as $key => $value) {
+                    if ($value == false) {
+                        $expression [] = $name.':"'.$key.'"';
+                    }
+                }
+                if ($expression) {
+                    $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
                 }
             }
-            if ( ! $doc['is_granted'] ) {
-                $doc['content'] = preg_replace('/[\w|&|?]/', 'x', $doc['content']);
-            }
-            $documents [] = $doc;
-        }
 
-        $facets = array();
-        foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
-            $tmp = array(
-                'name'  => $key,
-                'label' => $this->get('translator')->trans($key, array(), 'search')
-            );            
-            switch ($key) {
-                case 'type_name':
-                    foreach ($facet as $value => $count) {
-                         $tmp ['value'] []= array(
-                                'count' => $count, 
-                                'value' => $value,
-                                'label' => $this->get('translator')->trans($value, array(), 'search')
-                         );
-                    }
-                    $facets [] = $tmp;
-                    break;
-                case 'owner_id':
-                    foreach ($facet as $value => $count) {
-                    /* @var $owner \Claroline\CoreBundle\Entity\User */
-                    $owner = $this->entityManager
-                        ->getRepository("ClarolineCoreBundle:User")
-                        ->findOneById($value);
-                    
-                         $tmp ['value'] []= array(
-                                'count' => $count, 
-                                'value' => $value,
-                                'label' => $owner->getFirstName() .' '. $owner->getLastName()
-                         );
-                    }
-                    $facets [] = $tmp;
-                
-                default:
-                    break;
-            }
-            
-        }
+            //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
+            //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
 
+            // get the facetset component
+            $facetSet = $query->getFacetSet();
+            // create a facet field instance and set options
+            $facetSet->createFacetField('type_name')->setField('type_name');
+            //$facetSet->createFacetField('owner_id')->setField('owner_id');
+
+            $resultset = $client->select($query);
+            $highlighting = $resultset->getHighlighting();
+
+            $documents = array();
+            foreach ($resultset as $document) {
+                $doc = array();
+
+                foreach ($document->getFields() as $field => $value) {
+                    $doc[$field] = $value;
+                }
+
+                if (isset($doc['resource_id'])){
+                    $resourceId = $doc['resource_id'];
+
+                    $resourceNode = $this->entityManager
+                            ->getRepository("ClarolineCoreBundle:Resource\ResourceNode")
+                            ->findOneById($resourceId);
+
+                    $doc['is_granted'] = $this->security->isGranted('OPEN', $resourceNode);
+                } else {
+                    //todo 
+                    $doc['is_granted'] = true;
+                }
+
+                $highlightedDoc = $highlighting->getResult($document->id);
+                if ($highlightedDoc) {
+                    foreach ($highlightedDoc as $field => $highlight) {
+                        $doc[$field] =  implode(' (...)', $highlight);
+                    }
+                }
+                /*if ( ! $doc['is_granted'] ) {
+                    $doc['content'] = preg_replace('/[\w|&|?]/', 'x', $doc['content']);
+                }*/
+                $documents [] = $doc;
+            }
+
+            $facets = array();
+            foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
+                $tmp = array(
+                    'name'  => $key,
+                    'label' => $this->get('translator')->trans($key, array(), 'search')
+                );            
+                switch ($key) {
+                    case 'type_name':
+                        foreach ($facet as $value => $count) {
+                             $tmp ['value'] []= array(
+                                    'count' => $count, 
+                                    'value' => $value,
+                                    'label' => $this->get('translator')->trans($value, array(), 'search')
+                             );
+                        }
+                        $facets [] = $tmp;
+                        break;
+                    case 'owner_id':
+                        foreach ($facet as $value => $count) {
+                        /* @var $owner \Claroline\CoreBundle\Entity\User */
+                        $owner = $this->entityManager
+                            ->getRepository("ClarolineCoreBundle:User")
+                            ->findOneById($value);
+
+                             $tmp ['value'] []= array(
+                                    'count' => $count, 
+                                    'value' => $value,
+                                    'label' => $owner->getFirstName() .' '. $owner->getLastName()
+                             );
+                        }
+                        $facets [] = $tmp;
+
+                    default:
+                        break;
+                }
+
+            }
+        } catch (Exception $ex) {
+            $logger->error($ex->getMessage());
+        }
         return $this->render(
             'OrangeSearchBundle:Search:response.' . $_format . '.twig', 
                 array(
@@ -255,7 +263,7 @@ class SearchController extends Controller
 
             // create a facet field instance and set options
             $facetSet->createFacetField('content-type')->setField('type_name');
-            $facetSet->createFacetField('wks')->setField('wks_id');
+            //$facetSet->createFacetField('wks')->setField('wks_id');
 
             // Filtrage
             if (($filterType != "all") && ($filterType != "")) {
