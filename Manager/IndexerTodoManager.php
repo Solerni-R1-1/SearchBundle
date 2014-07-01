@@ -76,7 +76,7 @@ class IndexerTodoManager
                 );
                 $this->sender->send(json_encode($message));
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
         }
     }
