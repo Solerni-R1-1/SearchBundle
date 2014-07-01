@@ -194,7 +194,7 @@ mark {
 .presentation__mooc__right__body__right__badge,
 .presentation__mooc__right__body__right__price,
 .presentation__mooc__right__body__right__activity{
-    background-image: url("/bundles/clarolinecore/images/sprites_solerni.png");
+    background-image: url("../bundles/clarolinecore/images/sprites_solerni.png");
     background-repeat: no-repeat;
     color: #606060;
     display: block;
