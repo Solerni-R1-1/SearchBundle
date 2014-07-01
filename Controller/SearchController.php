@@ -61,6 +61,7 @@ class SearchController extends Controller
             $_format = $request->getRequestFormat();
             $page = $this->getRequest()->get('page') ? $this->getRequest()->get('page') : 1;
             $keywords = $this->getRequest()->get('keywords');
+            $selections = $this->getRequest()->get('selections') ? $this->getRequest()->get('selections') : array();
             $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
             $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
             $client = $this->get('solarium.client');
@@ -83,6 +84,19 @@ class SearchController extends Controller
             $hl->setFields('content');
             $hl->setSimplePrefix('<mark>');
             $hl->setSimplePostfix('</mark>');
+            
+             /* Selection */
+            foreach ($selections as $name => $values) {
+                $expression = array();
+                foreach ($values as $key => $value) {
+                    if ($value == true) {
+                        $expression [] = $name.':"'.$key.'"';
+                    }
+                }
+                if ($expression) {
+                    $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
+                }
+            }
 
             /* Filtrage */
             foreach ($filters as $name => $values) {
@@ -179,6 +193,8 @@ class SearchController extends Controller
                 }
 
             }
+            
+            ksort($facets);
         } catch (Exception $ex) {
             $logger->error($ex->getMessage());
         }
