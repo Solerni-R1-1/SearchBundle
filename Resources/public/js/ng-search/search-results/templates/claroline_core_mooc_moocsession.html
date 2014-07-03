@@ -23,7 +23,8 @@
             <div class="presentation__mooc__right__body__left">
                 <span class="presentation__mooc__right__body__left__theme"></span>
                
-                <span class="presentation__mooc__right__body__left__desc" ng-bind-html = "document.content | truncate:100" ></span>		
+                <span class="presentation__mooc__right__body__left__desc" ng-bind-html = "document.content | truncate:100" > </span>
+                <span><a class="link__more" href="{{ document.mooc_view_url | path}}">En savoir plus</a></span>
                 <div class="clearfix"></div>
 
                 <a href="#" class="button__link presentation__mooc__right__body__left__link">
