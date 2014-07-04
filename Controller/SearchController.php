@@ -64,6 +64,7 @@ class SearchController extends Controller
             $selections = $this->getRequest()->get('selections') ? $this->getRequest()->get('selections') : array();
             $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
             $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
+            $ativatedFilters = $this->getRequest()->get('activated_filters') ? $this->getRequest()->get('activated_filters') : array();
             $client = $this->get('solarium.client');
             // get a select query instance
             $query = $client->createSelect();
@@ -88,14 +89,16 @@ class SearchController extends Controller
              /* Selection */
             foreach ($selections as $name => $values) {
                 $expression = array();
-                foreach ($values as $key => $value) {
-                    if ($value == true) {
-                        $expression [] = $name.':"'.$key.'"';
+               //if ( isset($values['all']) && $values['all'] === true) {
+                    foreach ($values as $key => $value) {
+                        if ($value == true) {
+                            $expression [] = $name.':"'.$key.'"';
+                        }
                     }
-                }
-                if ($expression) {
-                    $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
-                }
+                    if ($expression) {
+                        $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
+                    }
+                //}
             }
 
             /* Filtrage */
@@ -116,9 +119,11 @@ class SearchController extends Controller
 
             // get the facetset component
             $facetSet = $query->getFacetSet();
+            
             // create a facet field instance and set options
-            $facetSet->createFacetField('type_name')->setField('type_name');
-            //$facetSet->createFacetField('owner_id')->setField('owner_id');
+            foreach ($ativatedFilters as $activatedFilter) {
+                $facetSet->createFacetField($activatedFilter)->setField($activatedFilter);
+            }
 
             $resultset = $client->select($query);
             $highlighting = $resultset->getHighlighting();
@@ -187,6 +192,20 @@ class SearchController extends Controller
                              );
                         }
                         $facets [] = $tmp;
+                    case 'mooc_category_ids':
+
+                        foreach ($facet as $value => $count) {
+                        /* @var $moocSession \Claroline\CoreBundle\Entity\Mooc\MoocCategory */
+                        $moocCategory = $this->entityManager
+                            ->getRepository("ClarolineCoreBundle:Mooc\MoocCategory")
+                            ->findOneById($value);
+                             $tmp ['value'] []= array(
+                                    'count' => $count, 
+                                    'value' => $value,
+                                    'label' => $moocCategory->getName()
+                             );
+                        }
+                        $facets [] = $tmp;                        
 
                     default:
                         break;

@@ -67,3 +67,37 @@ mark {
     padding: 1em;
 }
 
+.slrn-filter {
+    font-size: 0.9em;
+}
+
+.slrn-filter-input {
+    padding: 1em;
+    background-color: #eeeeee;
+}
+
+.slrn-filter h3 {
+   font-size: 1.3em;
+   font-weight: bold;
+   background-color: #4B667C;
+   color: #F6F6F6;
+   padding: 0.5em;
+   padding-right: 2em;
+   margin-bottom: 0;
+   margin-top: 0;
+}
+
+.slrn-filter ul {
+    padding-left: 1em;
+}
+
+.slrn-num-found {
+    margin-top: 1em;
+    background-color: #eeeeee;
+    padding: 0.5em;
+}
+
+.slrn-search-refine {
+   font-size: 0.9em;
+   text-transform : uppercase; 
+}
