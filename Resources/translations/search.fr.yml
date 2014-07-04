@@ -23,9 +23,13 @@ indexer_admin: Indexer Administration
 select_indexable_entities: Selectionner les entitées à indexer
 type_name: Type de Document
 owner_id: Propriétaire
+mooc_category_ids: Catégory
 wks_id: Worskspace ID
 claroline_forum_message: Messages de forum
 claroline_forum_subject: Sujets du forum
 claroline_forum_category: Catégorie de forum
 items_per_page: Nombre de résultat par page
 claroline_core_mooc_moocsession : Session mooc
+no result found: Aucun résultat trouvé
+result found: Résultats trouvés
+refine your search: Affiner votre recherche

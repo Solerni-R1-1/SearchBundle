@@ -5,7 +5,13 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                 'page': 1,
                 'items_per_page': 5,
                 'keywords': '',
-                'filters': {}
+                'filters': {},
+                'selections': {
+                    'type_name': {
+                        'claroline_core_mooc_moocsession': true
+                    }
+                },
+                'activated_filters':['mooc_category_ids']
             }
         };
 
