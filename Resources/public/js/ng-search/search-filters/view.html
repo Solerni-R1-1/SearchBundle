@@ -5,17 +5,17 @@
     <div class="slrn-filter-input">
         <input 
             type="checkbox"
-            ng-change="checkAll(data.query.filters[facet.name])"
-            ng-model="data.query.filters[facet.name]['all']"/>
+            ng-change="onChangeAllCheckbox(data.filters[facet.name], facet.name)"
+            ng-model="data.filters[facet.name]['all']"/>
         <label>All</label>
         <ul class="slrn-ul-no-bullet">
             <li
-                ng-repeat="elmnt in order(facet.value, 'name')">
+                ng-repeat="elmnt in facet.value">
                 <input 
                     type="checkbox" 
                     name="{{facet.name + '[]'}}" 
-                    ng-change="search(data.query)" 
-                    ng-model="data.query.filters[facet.name][elmnt.value]"/> 
+                    ng-change="onChangeCheckbox(data.filters[facet.name], facet.name)" 
+                    ng-model="data.filters[facet.name][elmnt.value]"/> 
 
                 <label>{{ (elmnt.label) + ' (' + elmnt.count + ')'}}</label>
             </li>

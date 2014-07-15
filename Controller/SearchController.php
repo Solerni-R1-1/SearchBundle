@@ -41,6 +41,7 @@ class SearchController extends Controller
         $this->entityManager = $entityManager;
         $this->router = $router;
     }
+    
 
     /**
      * @EXT\Route(
@@ -52,80 +53,16 @@ class SearchController extends Controller
      *
      * @return Response
      */
-    public function indexAction()
+    public function searchAction($_format)
     {
+        if ($_format == 'html') {
+            return $this->render('OrangeSearchBundle:Search:response.html.twig');
+        }
         $logger = $this->container->get('logger');
         try {
-
-            $request = $this->getRequest();
-            $_format = $request->getRequestFormat();
-            $page = $this->getRequest()->get('page') ? $this->getRequest()->get('page') : 1;
-            $keywords = $this->getRequest()->get('keywords');
-            $selections = $this->getRequest()->get('selections') ? $this->getRequest()->get('selections') : array();
-            $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
-            $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
-            $ativatedFilters = $this->getRequest()->get('activated_filters') ? $this->getRequest()->get('activated_filters') : array();
             $client = $this->get('solarium.client');
-            // get a select query instance
-            $query = $client->createSelect();
-            $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
-            $query->setOmitHeader(false);
-
-            if ($request->getMethod() == 'POST') {
-
-                if ($keywords) {
-                    $query->setQuery('content:'.$keywords);
-                } else {
-                    $query->setQuery('*');
-                }
-            }
-            // get highlighting component and apply settings
-            $hl = $query->getHighlighting();
-            $hl->setFragsize(300);
-            $hl->setFields('content');
-            $hl->setSimplePrefix('<mark>');
-            $hl->setSimplePostfix('</mark>');
-            
-             /* Selection */
-            foreach ($selections as $name => $values) {
-                $expression = array();
-               //if ( isset($values['all']) && $values['all'] === true) {
-                    foreach ($values as $key => $value) {
-                        if ($value == true) {
-                            $expression [] = $name.':"'.$key.'"';
-                        }
-                    }
-                    if ($expression) {
-                        $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
-                    }
-                //}
-            }
-
-            /* Filtrage */
-            foreach ($filters as $name => $values) {
-                $expression = array();
-                foreach ($values as $key => $value) {
-                    if ($value == false) {
-                        $expression [] = $name.':"'.$key.'"';
-                    }
-                }
-                if ($expression) {
-                    $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
-                }
-            }
-
-            //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
-            //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
-
-            // get the facetset component
-            $facetSet = $query->getFacetSet();
-            
-            // create a facet field instance and set options
-            foreach ($ativatedFilters as $activatedFilter) {
-                $facetSet->createFacetField($activatedFilter)->setField($activatedFilter);
-            }
-
-            $resultset = $client->select($query);
+            $request = $this->getRequest();
+            $resultset = $client->select($this->createQuery($request));
             $highlighting = $resultset->getHighlighting();
 
             $documents = array();
@@ -165,10 +102,10 @@ class SearchController extends Controller
             foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
                 $tmp = array(
                     'name'  => $key,
-                    'label' => $this->get('translator')->trans($key, array(), 'search')
+                    'label' => $this->get('translator')->trans("facet_".$key, array(), 'search')
                 );            
                 switch ($key) {
-                    case 'type_name':
+                    case 'type':
                         foreach ($facet as $value => $count) {
                              $tmp ['value'] []= array(
                                     'count' => $count, 
@@ -178,7 +115,7 @@ class SearchController extends Controller
                         }
                         $facets [] = $tmp;
                         break;
-                    case 'owner_id':
+                    case 'owner':
                         foreach ($facet as $value => $count) {
                         /* @var $owner \Claroline\CoreBundle\Entity\User */
                         $owner = $this->entityManager
@@ -192,7 +129,8 @@ class SearchController extends Controller
                              );
                         }
                         $facets [] = $tmp;
-                    case 'mooc_category_ids':
+                        break;
+                    case 'mcat':
 
                         foreach ($facet as $value => $count) {
                         /* @var $moocSession \Claroline\CoreBundle\Entity\Mooc\MoocCategory */
@@ -206,7 +144,7 @@ class SearchController extends Controller
                              );
                         }
                         $facets [] = $tmp;                        
-
+                        break;
                     default:
                         break;
                 }
@@ -218,7 +156,7 @@ class SearchController extends Controller
             $logger->error($ex->getMessage());
         }
         return $this->render(
-            'OrangeSearchBundle:Search:response.' . $_format . '.twig', 
+            'OrangeSearchBundle:Search:response.json.twig', 
                 array(
                     'resultset' => $resultset,
                     'documents' => $documents,
@@ -226,8 +164,80 @@ class SearchController extends Controller
                 )
         );
     }
-
     
+    
+
+    /**
+     * process request GET query 
+     * @param type $request
+     * 
+     * @return \Solarium\Core\Query 
+     */
+    private function createQuery($request) {
+            
+            $keywords = $request->query->get('q');
+            $selections = $this->parseQuery($request->query->get('ss'));
+            $filters = $this->parseQuery($request->query->get('fs'));
+            $page = $request->query->get('page') ? $request->query->get('page') : 1;
+            $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
+            $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
+            
+            $client = $this->get('solarium.client');
+            // get a select query instance
+            $query = $client->createSelect();
+            $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
+            $query->setOmitHeader(false);
+            if ($keywords) {
+                $query->setQuery('content:'.$keywords);
+            } else {
+                $query->setQuery('*');
+            }
+            // get highlighting component and apply settings
+            $hl = $query->getHighlighting();
+            $hl->setFragsize(300);
+            $hl->setFields('content');
+            $hl->setSimplePrefix('<mark>');
+            $hl->setSimplePostfix('</mark>');
+            
+            /* Selection */
+            foreach ($selections as $shortCut => $values) {
+                $name = $this->getNameByShortCut($shortCut);
+                $expression = array();
+               //if ( isset($values['all']) && $values['all'] === true) {
+                    foreach ($values as $key ) {
+                            $expression [] = $name.':"'.$key.'"';
+                    }
+                    if ($expression) {
+                        $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
+                    }
+                //}
+            }
+
+            /* Filtrage */
+            foreach ($filters as $shortCut => $values) {
+                $name = $this->getNameByShortCut($shortCut);
+                $expression = array();
+                foreach ($values as $key ) {
+                        $expression [] = $name.':"'.$key.'"';
+                }
+                if ($expression) {
+                    $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
+                }
+            }
+
+            //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
+            //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
+
+            // get the facetset component
+            $facetSet = $query->getFacetSet();
+            
+            // create a facet field instance and set options
+            foreach ($ativatedFilters as $activatedFilter) {
+                $facetSet->createFacetField($activatedFilter)
+                         ->setField($this->getNameByShortCut($activatedFilter));
+            }
+            return $query;
+    }    
 
     /**
      * @EXT\Route("/config")
@@ -423,5 +433,46 @@ class SearchController extends Controller
             throw new AccessDeniedException();
         }
     }
+    
+    private function parseQuery($paramsString)
+    {
+        $result = array();
+        if (!empty($paramsString)) {
+            $params = explode(',', $paramsString);
+            foreach ($params as $param) {
+                $sub_param = explode('__', $param);
+                if (count($sub_param) == 2) {
+                    $result [$sub_param[0]] [] = $sub_param[1];  
+                }
+            }
+        }
+        return $result;
+    }
 
+    private function getNameByShortCut($shortCut) {
+        switch ($shortCut) {
+            case 'type':
+                return 'type_name';
+            case 'mcat':
+                return 'mooc_category_ids';
+            case 'owner' :
+                return 'owner_id';
+            default:
+                return $shortCut;
+        }
+    }
+    
+    private function getShortCutByName($name) {
+        switch ($name) {
+            case 'type_name':
+                return 'type';
+            case 'mooc_category_ids':
+                return 'mcat';
+            case 'owner_id' :
+                return 'owner';
+            default:
+                return $name;
+        }
+    }
+    
 }

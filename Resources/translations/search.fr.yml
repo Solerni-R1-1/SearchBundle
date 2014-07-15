@@ -33,3 +33,6 @@ claroline_core_mooc_moocsession : Session mooc
 no result found: Aucun résultat trouvé
 result found: Résultats trouvés
 refine your search: Affiner votre recherche
+facet_mcat : Catégories
+facet_type : Type de Document
+facet_owner : Propriétaire

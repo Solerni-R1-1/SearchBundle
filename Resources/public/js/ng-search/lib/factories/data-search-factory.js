@@ -13,7 +13,7 @@ searchApp.factory('dataSearchFactory', ['$q', 'ngSearchService', function($q, ng
                             document.type_name +
                             '.html';
                 });
-                console.log('data: ', response.data);
+                //console.log('data: ', response.data);
                 _data = response.data;
                 _deferred.resolve(_data);
             }, function() {

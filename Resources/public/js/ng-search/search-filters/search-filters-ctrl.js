@@ -1,11 +1,35 @@
 searchApp.controller('searchFiltersCtrl', ['$scope','$filter', function($scope, $filter) {
-        $scope.checkAll = function(list) {
-            //console.log(list);
+        
+        var _areCheckboxChecked = function (list) {
+            var result = true;
             angular.forEach(list, function(value, key) {
-                list[key] = true;
+                if (key !== 'all') result  = result && value;
             });
-            $scope.search($scope.data.query);
+            return result;
         };
+        
+        $scope.onChangeAllCheckbox = function(list, srcFacetName) {
+            if (list['all']) {
+                angular.forEach(list, function(value, key) {
+                    list[key] = false;
+                });
+            } 
+            list['all'] = true;
+            $scope.updateQuery($scope.data.filters, srcFacetName);
+        };
+        
+        $scope.onChangeCheckbox = function(list, srcFacetName) {
+            if (_areCheckboxChecked(list)) {
+                angular.forEach(list, function(value, key) {
+                    list[key] = false;
+                });
+                list['all'] = true;
+            } else {
+                list['all'] = false;
+            }
+            $scope.updateQuery($scope.data.filters, srcFacetName);
+        };
+        
         
         var orderBy = $filter('orderBy');
         $scope.order = function(dic, predicate, reverse) {
