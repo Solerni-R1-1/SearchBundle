@@ -21,6 +21,13 @@ class SearchController extends Controller
     private $pagerFactory;
     private $security;
     private $entityManager;
+    
+    public static $shortCuts = array( 
+            'type_name'         => 'type',
+            'mooc_category_ids' => 'mcat',
+            'mooc_owner_name'   => 'owner',
+            'mooc_is_public_b'  => 'ispub'
+    );
 
     /**
      * @DI\InjectParams({
@@ -40,6 +47,7 @@ class SearchController extends Controller
         $this->security = $security;
         $this->entityManager = $entityManager;
         $this->router = $router;
+
     }
     
 
@@ -102,30 +110,19 @@ class SearchController extends Controller
             foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
                 $tmp = array(
                     'name'  => $key,
-                    'label' => $this->get('translator')->trans("facet_".$key, array(), 'search')
+                    'label' => $this->get('translator')->trans("facet_".$key, array(), 'search'),
+                    'class' => "slrn-facet-$key",
+                    'type'  => "checkbox"
                 );            
                 switch ($key) {
+                    case 'ispub':
+                        $tmp ['type'] = 'radio';
                     case 'type':
                         foreach ($facet as $value => $count) {
                              $tmp ['value'] []= array(
                                     'count' => $count, 
                                     'value' => $value,
                                     'label' => $this->get('translator')->trans($value, array(), 'search')
-                             );
-                        }
-                        $facets [] = $tmp;
-                        break;
-                    case 'owner':
-                        foreach ($facet as $value => $count) {
-                        /* @var $owner \Claroline\CoreBundle\Entity\User */
-                        $owner = $this->entityManager
-                            ->getRepository("ClarolineCoreBundle:User")
-                            ->findOneById($value);
-
-                             $tmp ['value'] []= array(
-                                    'count' => $count, 
-                                    'value' => $value,
-                                    'label' => $owner->getFirstName() .' '. $owner->getLastName()
                              );
                         }
                         $facets [] = $tmp;
@@ -146,6 +143,14 @@ class SearchController extends Controller
                         $facets [] = $tmp;                        
                         break;
                     default:
+                        foreach ($facet as $value => $count) {
+                             $tmp ['value'] []= array(
+                                    'count' => $count, 
+                                    'value' => $value,
+                                    'label' => $value
+                             );
+                        }
+                        $facets [] = $tmp; 
                         break;
                 }
 
@@ -177,7 +182,7 @@ class SearchController extends Controller
             
             $keywords = $request->query->get('q');
             $selections = $this->parseQuery($request->query->get('ss'));
-            $filters = $this->parseQuery($request->query->get('fs'));
+            $fixedSelections = $this->parseQuery($request->query->get('fs'));
             $page = $request->query->get('page') ? $request->query->get('page') : 1;
             $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
             $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
@@ -200,7 +205,7 @@ class SearchController extends Controller
             $hl->setSimplePostfix('</mark>');
             
             /* Selection */
-            foreach ($selections as $shortCut => $values) {
+            foreach ($selections + $fixedSelections as $shortCut => $values) {
                 $name = $this->getNameByShortCut($shortCut);
                 $expression = array();
                //if ( isset($values['all']) && $values['all'] === true) {
@@ -213,21 +218,6 @@ class SearchController extends Controller
                 //}
             }
 
-            /* Filtrage */
-            foreach ($filters as $shortCut => $values) {
-                $name = $this->getNameByShortCut($shortCut);
-                $expression = array();
-                foreach ($values as $key ) {
-                        $expression [] = $name.':"'.$key.'"';
-                }
-                if ($expression) {
-                    $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
-                }
-            }
-
-            //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
-            //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
-
             // get the facetset component
             $facetSet = $query->getFacetSet();
             
@@ -239,194 +229,7 @@ class SearchController extends Controller
             return $query;
     }    
 
-    /**
-     * @EXT\Route("/config")
-     * 
-     */
-    public function configAction()
-    {
-        $solr_endpoints = $this->container->getParameter('index_endpoint');
-        //var_dump($solr_endpoints);
-    }
-
-    /**
-     * @EXT\Route(
-     *     "/ping/",
-     *     name = "orange_search_ping"
-     * )
-     *
-     * @EXT\Template("OrangeSearchBundle:AdminSolr:index.html.twig")
-     *
-     * @return Response
-     */
-    public function pingAction()
-    {
-        $this->assertIsGranted('ROLE_USER');
-
-        $client = $this->get('solarium.client');
-        $ping = $client->createPing();
-
-        try {
-            $result = $client->ping($ping);
-
-            return array(
-                'status' => 'Serveur accessible'
-            );
-        } catch (Solarium\Exception $e) {
-            return array(
-                'status' => 'Serveur non disponible'
-            );
-        }
-    }
-
-    /**
-     * @EXT\Route(
-     *     "/requeshjgt/page/{page}",
-     *     name = "orange_search_request",
-     *     defaults={"page"=1}
-     * )
-     *
-     * @EXT\Template("OrangeSearchBundle:Search:reponse.html.twig")
-     *
-     * @return Response
-     */
-    public function requestAction($page, $nbByPage = 50)
-    {
-        $search = $this->getRequest()->get('search');
-        $filterType = $this->getRequest()->get('filter_type');
-        $this->assertIsGranted('ROLE_USER');
-
-        $client = $this->get('solarium.client');
-        $ping = $client->createPing();
-        $manager = $this->getDoctrine()->getManager();
-        try {
-            $result = $client->ping($ping);
-
-            $select = $client->createSelect();
-            // get the facetset component
-            $facetSet = $select->getFacetSet();
-
-            // create a facet field instance and set options
-            $facetSet->createFacetField('content-type')->setField('type_name');
-            //$facetSet->createFacetField('wks')->setField('wks_id');
-
-            // Filtrage
-            if (($filterType != "all") && ($filterType != "")) {
-                $select->createFilterQuery('type_name')->setQuery('type_name:' . $filterType);
-            }
-
-            $select->setQuery($search);
-            $select->setStart(((int) $page - 1) * $nbByPage)->setRows($nbByPage);
-            $select->setOmitHeader(false);
-
-            $request = $client->createRequest($select)->addParam('qt', 'claroline');
-            $response = $client->executeRequest($request);
-            $results = $client->createResult($select, $response);
-
-            $nb = $results->getNumFound();
-            $time = 0;
-
-            // display facet results
-            $facetResult = $results->getFacetSet()->getFacet('content-type');
-            $facetResultWks = $results->getFacetSet()->getFacet('wks');
-            $facetWks = array();
-            foreach ($facetResultWks as $key => $frWks) {
-                $wks = $manager->getRepository('Claroline\CoreBundle\Entity\Workspace\AbstractWorkspace')->find($key);
-                $facetWks[$wks->getName()] = $frWks;
-            }
-
-            $lr = array();
-            foreach ($results as $result) {
-
-                $r = array();
-                foreach ($result AS $field => $value) {
-                    if (is_array($value))
-                        $value = implode(', ', $value);
-
-                    $r[$field] = $value;
-                }
-
-                // We check if user has access to the resource
-                $resourceNode = $manager->getRepository('Claroline\CoreBundle\Entity\Resource\ResourceNode')->find($r["resource_id"]);
-
-                if ($this->security->isGranted("open", new ResourceCollection(array($resourceNode)))) {
-                    $r["owner"] = true;
-                } else {
-                    $r["owner"] = false;
-                }
-
-                if (!isset($r["mime_type"]))
-                    $r["mime_type"] = "";
-
-                // Traitement à faire sur la liste réponse
-                // Pour un fichier on tronque le content
-                // TODO
-                if (($r["mime_type"] == "application/pdf") && isset($r["content"]))
-                    $r["content"] = substr($r["content"], 0, 200);
-
-                // Lecture du nom du WKS
-                if (isset($r["wks_id"])) {
-                    $wks = $manager->getRepository('Claroline\CoreBundle\Entity\Workspace\AbstractWorkspace')->find($r["wks_id"]);
-                    $r["wks_name"] = $wks->getName();
-                } else {
-                    $r["wks_name"] = "";
-                }
-
-                // TODO - Est-ce qu'il s'agit d'une transcription texte d'une vidéo
-                if (isset($r["attr_custom:dailymotion"])) {
-                    
-                } else
-                    $r["attr_custom:dailymotion"] = "";
-
-
-                // Lecture du sujet du owner
-                if (isset($r["user_id"])) {
-                    $owner = $manager->getRepository('Claroline\CoreBundle\Entity\User')->find($r["user_id"]);
-                    $r["first_name"] = $owner->getFirstName();
-                    $r["last_name"] = $owner->getLastName();
-                }
-
-                // Lecture du sujet du forum si présent
-                if (isset($r["subject_id"])) {
-                    $forumSubject = $manager->getRepository('Claroline\ForumBundle\Entity\Subject')->find($r["subject_id"]);
-                    $r["name"] = $forumSubject->getTitle();
-                }
-
-                array_push($lr, $r);
-                unset($r);
-            }
-
-            //$pager = $this->pagerFactory->createPagerFromArray($lr, $page, 5);
-            //return $this->render('OrangeSearchBundle:Search:reponse.html.twig', array('name' => $name, 'results' => $lr, 'facets' => $facetResult, 'facetsWks' => $facetWks));
-
-            $currentUrl = substr($this->getRequest()->getUri(), 0, strpos($this->getRequest()->getUri(), "/search/request"));
-
-            $ressourceType = array();
-            $ressourceType[] = "all_resources";
-            $ressourceType[] = "custom/claroline_forum";
-            $ressourceType[] = "custom/text";
-            $ressourceType[] = "custom/file";
-            $ressourceType[] = "custom/claroline_announcement_aggregate";
-            $ressourceType[] = "custom/icap_wiki";
-            $ressourceType[] = "custom/ujm_exercise";
-
-            return array(
-                'name' => $search,
-                'nbResults' => $nb,
-                'nbByPage' => $nbByPage,
-                'page' => $page,
-                'results' => $lr,
-                'facets' => $facetResult,
-                'facetsWks' => $facetWks,
-                'url' => $currentUrl,
-                'time' => $time,
-                'resourcesType' => $ressourceType
-            );
-        } catch (Solarium\Exception\HttpException $e) {
-            echo 'Ping query failed';
-        }
-    }
-
+    
     private function assertIsGranted($attributes, $object = null)
     {
         if (false === $this->security->isGranted($attributes, $object)) {
@@ -442,37 +245,35 @@ class SearchController extends Controller
             foreach ($params as $param) {
                 $sub_param = explode('__', $param);
                 if (count($sub_param) == 2) {
-                    $result [$sub_param[0]] [] = $sub_param[1];  
+                    $result [$sub_param[0]] [] = $sub_param[1];
                 }
             }
         }
         return $result;
     }
 
-    private function getNameByShortCut($shortCut) {
-        switch ($shortCut) {
-            case 'type':
-                return 'type_name';
-            case 'mcat':
-                return 'mooc_category_ids';
-            case 'owner' :
-                return 'owner_id';
-            default:
-                return $shortCut;
-        }
+    private function getShotCut() 
+    {
+        return self::$shortCuts;
     }
     
-    private function getShortCutByName($name) {
-        switch ($name) {
-            case 'type_name':
-                return 'type';
-            case 'mooc_category_ids':
-                return 'mcat';
-            case 'owner_id' :
-                return 'owner';
-            default:
-                return $name;
+    private function getNameByShortCut($shortCut)
+    {
+        $result = array_search($shortCut, $this->getShotCut());
+        if ($result) {
+            return $result;
+        } else {
+            return $shortCut;
         }
     }
-    
+
+    private function getShortCutByName($name)
+    {
+        if (isset($this->getShotCut()[$name])) {
+            return $this->getShotCut()[$name];
+        } else {
+            return $name;
+        }
+    }
+
 }

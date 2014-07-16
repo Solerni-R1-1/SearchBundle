@@ -56,7 +56,6 @@ mark {
 }
 
 #slrn-items-per-page {
-    margin-top: 1em;
 }
 
 .slrn-ul-no-bullet {
@@ -100,4 +99,8 @@ mark {
 .slrn-search-refine {
    font-size: 0.9em;
    text-transform : uppercase; 
+}
+
+.slrn-header__subsearch {
+    margin-top: 1em;
 }

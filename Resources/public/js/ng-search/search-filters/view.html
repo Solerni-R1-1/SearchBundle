@@ -1,6 +1,7 @@
 <div 
     class="slrn-filter"
-    ng-repeat="facet in data.results.facets">
+    ng-repeat="facet in data.facets">
+    <div class="{{ facet.class }}"></div>
     <h3>{{ facet.label}}</h3>
     <div class="slrn-filter-input">
         <input 

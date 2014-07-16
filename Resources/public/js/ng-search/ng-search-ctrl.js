@@ -9,12 +9,32 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                 'ss': '',
                 'afs': 'mcat,type'
             },
-            'filters': {}
-        };
+            'filters': {},
+            'facets': []
+        };          
 
+          
+        var _indexOfObjByName = function(objects, name) {
+            for( var i=0;  i < objects.length; i++) {
+                if (objects[i].name === name) return i;
+            }
+            return -1;
+        };
+              
+        
+        var _facetsBuilder = function(query) {
+            if (query.se ) {
+                var indexOfFacet = _indexOfObjByName($scope.data.facets, query.se);
+                if (indexOfFacet > 0 ) {
+                    $scope.data.results.facets[indexOfFacet] = $scope.data.facets[indexOfFacet];
+                }
+            } 
+            
+           $scope.data.facets = $scope.data.results.facets;
+        };
+        
         var _filtersBuilder = function(query, facets) {
             angular.forEach(facets, function(facet) {
-
                 $scope.data.filters[facet.name] = (function(facet) {
                     var elmnts = {};
                     elmnts['all'] = true;
@@ -28,7 +48,6 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                     });
                     return elmnts;
                 })(facet);
-
             });
         };
 
@@ -46,20 +65,21 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
             }).then(function() {
                 $location.search(_namespace.query);
             }).then(function() {
+                _facetsBuilder(_namespace.query);
                 _filtersBuilder(_namespace.query, $scope.data.results.facets);
             });
         };
 
         var _generateSelectionQuery = function(elmnts, nameFilter) {
-            selectionQueryArray = [];
+            selectionQueries = [];
             if (!elmnts['all']) {
                 angular.forEach(elmnts, function(value, name) {
                     if (value) {
-                        selectionQueryArray.push(nameFilter + '__' + name);
+                        selectionQueries.push(nameFilter + '__' + name);
                     }
                 });
             }
-            return selectionQueryArray.join(',');
+            return selectionQueries.join(',');
         };
 
 
