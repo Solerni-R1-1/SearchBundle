@@ -7,7 +7,8 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                 'q': '',
                 'fs': '',
                 'ss': '',
-                'afs': 'mcat,type'
+                'afs': 'mcat,type',
+                'sb': false
             },
             'filters': {},
             'facets': []
@@ -29,25 +30,46 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                     $scope.data.results.facets[indexOfFacet] = $scope.data.facets[indexOfFacet];
                 }
             } 
-            
            $scope.data.facets = $scope.data.results.facets;
         };
         
         var _filtersBuilder = function(query, facets) {
+            $scope.data.showPublicPrivateDiv = false;
             angular.forEach(facets, function(facet) {
-                $scope.data.filters[facet.name] = (function(facet) {
-                    var elmnts = {};
-                    elmnts['all'] = true;
-                    angular.forEach(facet.value, function(elmnt) {
-                        if (query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
-                            elmnts[elmnt.value] = false;
-                        } else {
-                            elmnts[elmnt.value] = true;
-                            elmnts['all'] = false;
-                        }
-                    });
-                    return elmnts;
-                })(facet);
+                
+                switch (facet.type) {
+                    case 'checkbox-all' :
+                        $scope.data.filters[facet.name] = (function(facet) {
+                            var elmnts = {};
+                            elmnts['all'] = true;
+                            angular.forEach(facet.value, function(elmnt) {
+                                if (query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
+                                    elmnts[elmnt.value] = false;
+                                } else {
+                                    elmnts[elmnt.value] = true;
+                                    elmnts['all'] = false;
+                                }
+                            });
+                            return elmnts;
+                        })(facet);
+                        break;
+                    case 'checkbox' : 
+                        if (facet.name === 'ispub')
+                            $scope.data.showPublicPrivateDiv = true;
+                        $scope.data.filters[facet.name] = (function(facet) {
+                            var elmnts = {};
+                            angular.forEach(facet.value, function(elmnt) {
+                                if (query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
+                                    elmnts[elmnt.value] = false;
+                                } else {
+                                    elmnts[elmnt.value] = true;
+                                }
+                            });
+                            return elmnts;
+                        })(facet);
+                        break;
+                }
+
             });
         };
 
@@ -67,6 +89,7 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
             }).then(function() {
                 _facetsBuilder(_namespace.query);
                 _filtersBuilder(_namespace.query, $scope.data.results.facets);
+                console.log($scope.data.filters);
             });
         };
 
@@ -92,8 +115,8 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                 });
                 return elmnts.join(',');
             })(filters);
-
-            $scope.data.query.se = srcEventFacetName;
+            if (srcEventFacetName)
+                $scope.data.query.se = srcEventFacetName;
             _search($scope.data.query);
         };
 

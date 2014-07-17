@@ -104,3 +104,24 @@ mark {
 .slrn-header__subsearch {
     margin-top: 1em;
 }
+
+
+.slrn-filter-ispub {
+    cursor: pointer;
+    padding: 1em 2em 1em 2em;
+    font-weight: bold;
+}
+
+.slrn-filter-ispub-on {
+    background: #4B667C;
+    color: #F6F6F6;
+}
+
+.slrn-filter-ispub-off{
+    background: #eeeeef;
+    color: #606060;
+}
+
+.slrn-facet-ispub {
+    display: none;
+}

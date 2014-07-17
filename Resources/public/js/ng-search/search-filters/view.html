@@ -1,26 +1,7 @@
 <div 
     class="slrn-filter"
     ng-repeat="facet in data.facets">
-    <div class="{{ facet.class }}"></div>
-    <h3>{{ facet.label}}</h3>
-    <div class="slrn-filter-input">
-        <input 
-            type="checkbox"
-            ng-change="onChangeAllCheckbox(data.filters[facet.name], facet.name)"
-            ng-model="data.filters[facet.name]['all']"/>
-        <label>All</label>
-        <ul class="slrn-ul-no-bullet">
-            <li
-                ng-repeat="elmnt in facet.value">
-                <input 
-                    type="checkbox" 
-                    name="{{facet.name + '[]'}}" 
-                    ng-change="onChangeCheckbox(data.filters[facet.name], facet.name)" 
-                    ng-model="data.filters[facet.name][elmnt.value]"/> 
-
-                <label>{{ (elmnt.label) + ' (' + elmnt.count + ')'}}</label>
-            </li>
-        </ul>
-    </div>
+    
+    <div ng-include src="facet.templateUrl" ></div>
+      
 </div>
-
