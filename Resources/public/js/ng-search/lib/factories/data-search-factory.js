@@ -13,6 +13,14 @@ searchApp.factory('dataSearchFactory', ['$q', 'ngSearchService', function($q, ng
                             document.type_name +
                             '.html';
                 });
+                
+                angular.forEach(response.data.facets, function(facet) {
+                    facet.templateUrl = Claroline.Home.asset +
+                            'bundles/orangesearch/js/ng-search/search-filters/templates/' +
+                            facet.type +
+                            '.html';
+                });
+                
                 //console.log('data: ', response.data);
                 _data = response.data;
                 _deferred.resolve(_data);

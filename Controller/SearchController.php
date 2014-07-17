@@ -112,11 +112,11 @@ class SearchController extends Controller
                     'name'  => $key,
                     'label' => $this->get('translator')->trans("facet_".$key, array(), 'search'),
                     'class' => "slrn-facet-$key",
-                    'type'  => "checkbox"
+                    'type'  => "checkbox-all"
                 );            
                 switch ($key) {
                     case 'ispub':
-                        $tmp ['type'] = 'radio';
+                        $tmp ['type'] = 'checkbox';
                     case 'type':
                         foreach ($facet as $value => $count) {
                              $tmp ['value'] []= array(
@@ -208,14 +208,12 @@ class SearchController extends Controller
             foreach ($selections + $fixedSelections as $shortCut => $values) {
                 $name = $this->getNameByShortCut($shortCut);
                 $expression = array();
-               //if ( isset($values['all']) && $values['all'] === true) {
-                    foreach ($values as $key ) {
-                            $expression [] = $name.':"'.$key.'"';
-                    }
-                    if ($expression) {
-                        $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
-                    }
-                //}
+                foreach ($values as $key ) {
+                        $expression [] = $name.':"'.$key.'"';
+                }
+                if ($expression) {
+                    $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
+                }
             }
 
             // get the facetset component

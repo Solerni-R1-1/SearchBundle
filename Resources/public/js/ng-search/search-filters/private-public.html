@@ -1,2 +1,19 @@
-<div>
+<div ng-show="data.showPublicPrivateDiv">
+    <span
+        class ="slrn-filter-ispub"
+        ng-click="functions.filters.ispublic.set(true)"
+        ng-class="{ 
+            'slrn-filter-ispub-on': data.filters['ispub']['true'],
+            'slrn-filter-ispub-off': data.filters['ispub']['false'],      
+        }">
+        MOOC PUBLIC</span>
+    <span
+        class ="slrn-filter-ispub"
+        ng-click="functions.filters.ispublic.set(false)"
+        ng-class="{ 
+            'slrn-filter-ispub-on': data.filters['ispub']['false'],
+            'slrn-filter-ispub-off': data.filters['ispub']['true'],      
+        }">
+        MOOC PRIVE
+    </span>
 </div>
