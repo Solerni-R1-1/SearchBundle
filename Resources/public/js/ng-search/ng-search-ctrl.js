@@ -76,7 +76,7 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
 
         var _search = function(query) {
             document.getElementById('slrn-wrapper').style.display = 'block';
-            //console.log(query);
+            console.log(query);
             dataSearchFactory.request(query).then(function(data) {
                 _namespace.results = data;
                 _namespace.query = query;
@@ -85,11 +85,8 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
             }).then(function() {
                 document.getElementById('slrn-wrapper').style.display = 'none';
             }).then(function() {
-                $location.search(_namespace.query);
-            }).then(function() {
                 _facetsBuilder(_namespace.query);
                 _filtersBuilder(_namespace.query, $scope.data.results.facets);
-                console.log($scope.data.filters);
             });
         };
 
@@ -108,16 +105,21 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
 
         $scope.updateQuery = function(filters, srcEventFacetName) {
             //update query values
-            $scope.data.query.ss = (function(filters) {
+            var slices = (function(filters) {
                 var elmnts = [];
                 angular.forEach(filters, function(value, key) {
-                    elmnts.push(_generateSelectionQuery(value, key));
+                    var generatedSelectionQuery = _generateSelectionQuery(value, key);
+                    if (generatedSelectionQuery.trim())
+                        elmnts.push(generatedSelectionQuery);
                 });
-                return elmnts.join(',');
+                return elmnts;
             })(filters);
+            
+            $scope.data.query.ss = slices.join(',');
+            
             if (srcEventFacetName)
                 $scope.data.query.se = srcEventFacetName;
-            _search($scope.data.query);
+            $location.search($scope.data.query);
         };
 
         $scope.search = function(query) {
@@ -128,8 +130,16 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
         (function() {
             var searchObject = $location.search();
             angular.extend(_namespace.query, searchObject);
-            console.log(_namespace.query);
-            _search(_namespace.query);
+            $location.search(_namespace.query);
+            
+            $scope.$on('$locationChangeSuccess', function(event){
+                var searchObject = $location.search();
+                _namespace.query = searchObject;
+                angular.extend(_namespace.query, searchObject);
+                _search(_namespace.query);
+            });
+
+            
         })();
 
     }]);
