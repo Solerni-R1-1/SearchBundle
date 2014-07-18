@@ -103,6 +103,7 @@ mark {
 
 .slrn-header__subsearch {
     margin-top: 1em;
+    margin-bottom: 1em;
 }
 
 
@@ -124,4 +125,8 @@ mark {
 
 .slrn-facet-ispub {
     display: none;
+}
+
+.upcase {
+   text-transform: uppercase; 
 }

@@ -25,15 +25,16 @@
             </div>
         </div>
         <div class="row slrn-header__subsearch">
-            <div class="col-md-3">
-                FILTRER PAR :
+            <div class="col-md-3 upcase">
+                {{ "filter_by"| trans({}, 'search') }} :
             </div>
             <div class="col-md-5" 
                  ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/private-public.html')}}'"
                  ng-controller="searchFiltersCtrl">
             </div>
             <div class="col-md-4"
-                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'">
+                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'"
+                 ng-controller="searchPagerCtrl">
             </div> 
 
         </div>
