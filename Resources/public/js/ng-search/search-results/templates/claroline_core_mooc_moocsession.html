@@ -16,7 +16,7 @@
 
         <div class="presentation__mooc__right__header">
             <div class="presentation__mooc__right__header__title">{{document.mooc_title | truncate:30}}</div>
-            <div class="presentation__mooc__right__header__subtitle">proposé par Orange</div>
+            <div class="presentation__mooc__right__header__subtitle">{{'proposed' | trans }} {{document.mooc_owner_name}}</div>
         </div>
 
         <div class="presentation__mooc__right__body">
@@ -35,13 +35,16 @@
             </div>
             <div class="presentation__mooc__right__body__right">
                 <span class="presentation__mooc__right__body__right__date">
-                    <span class="valign">Début le {{document.start_date | date : 'MM/dd/yyyy'}} pour 10 semaines</span></span>
+                    <span class="valign">Début le {{document.start_date | date : 'MM/dd/yyyy'}} pour {{document.mooc_duration_i}} semaines</span></span>
                 <span class="presentation__mooc__right__body__right__badge">
                     <span class="valign">Badgeant</span>
                 </span>
                 <span class="presentation__mooc__right__body__right__price">
-                    <span class="valign">
-                        {{document.mooc_cost_i}}
+                    <span class="valign" ng-show="document.mooc_cost_i > 0">
+                            {{document.mooc_cost_i}} €
+                    </span>
+                    <span class="valign" ng-show="document.mooc_cost_i === 0">
+                            Gratuit
                     </span>
                 </span>
             </div>
