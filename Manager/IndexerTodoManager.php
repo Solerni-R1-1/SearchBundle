@@ -59,26 +59,7 @@ class IndexerTodoManager
      */
     public function toIndex(IndexableInterface $entity)
     {
-        
-        try {
-            $className = ClassUtils::getClass($entity);
-            if ($this->entityManager
-                    ->getRepository('OrangeSearchBundle:EntityToIndex')
-                    ->isToIndex($className)) {
-
-                $this->logger->info('Send index message ' . $className);
-                
-                $message = array(
-                    'entity_id' => $entity->getId(),
-                    'class_name' => $className,
-                    'document_id'=> $entity->getIndexableDocId(),
-                    'action' => 'index'
-                );
-                $this->sender->send(json_encode($message));
-            }
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
-        }
+        $this->todo($entity, 'index');
     }
 
     /*
@@ -88,20 +69,29 @@ class IndexerTodoManager
      */
     public function toDelete(IndexableInterface $entity)
     {
-
+        $this->todo($entity, 'delete');
+    }
+    
+     /*
+     * Add entity to the queue with index or remove action
+     * 
+     * @param indexable entity
+     */
+    private function todo($entity, $action)
+    {
         try {
             $className = ClassUtils::getClass($entity);
             if ($this->entityManager
                     ->getRepository('OrangeSearchBundle:EntityToIndex')
                     ->isToIndex($className)) {
                 
-                $this->logger->info('Send remove message' . $className);
+                $this->logger->info('Send '.$action.' message' . $className);
                 
                 $message = array(
                     'entity_id' => $entity->getId(),
                     'class_name' => $className,
                     'document_id'=> $entity->getIndexableDocId(),
-                    'action' => 'delete'
+                    'action' => $action
                 );
                 $this->sender->send(json_encode($message));
             }
@@ -109,5 +99,4 @@ class IndexerTodoManager
             $this->logger->error($e->getMessage());
         }
     }
-    
 }
