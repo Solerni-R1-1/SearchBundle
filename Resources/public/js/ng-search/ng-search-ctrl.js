@@ -24,9 +24,10 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
               
         
         var _facetsBuilder = function(query) {
-            if (query.se ) {
+            if (query.se) {
                 var indexOfFacet = _indexOfObjByName($scope.data.facets, query.se);
-                if (indexOfFacet > 0 ) {
+                
+                if (indexOfFacet >= 0 ) {
                     $scope.data.results.facets[indexOfFacet] = $scope.data.facets[indexOfFacet];
                 }
             } 

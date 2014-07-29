@@ -44,11 +44,11 @@ class IndexerTodoManager
     )
     {
         $this->entityManager = $entityManager;
-        $this->logger = $logger;
-        $this->security = $security;
+        $this->logger        = $logger;
+        $this->security      = $security;
         
-        $ctx = new \ZMQContext();
-        $this->sender = new \ZMQSocket($ctx, \ZMQ::SOCKET_PUSH);
+        $ctx                 = new \ZMQContext();
+        $this->sender        = new \ZMQSocket($ctx, \ZMQ::SOCKET_PUSH);
         $this->sender->connect("tcp://localhost:11111");
     }
 
@@ -88,10 +88,10 @@ class IndexerTodoManager
                 $this->logger->info('Send '.$action.' message' . $className);
                 
                 $message = array(
-                    'entity_id' => $entity->getId(),
-                    'class_name' => $className,
-                    'document_id'=> $entity->getIndexableDocId(),
-                    'action' => $action
+                    'entity_id'   => $entity->getId(),
+                    'class_name'  => $className,
+                    'document_id' => $entity->getIndexableDocId(),
+                    'action'      => $action
                 );
                 $this->sender->send(json_encode($message));
             }
@@ -99,4 +99,56 @@ class IndexerTodoManager
             $this->logger->error($e->getMessage());
         }
     }
+    
+    
+    public function requeue($entityToIndexClassName)
+    {
+        
+        $reports         = array();
+        $entitiesToIndex = $this->entityManager->getRepository($entityToIndexClassName)->findAll();
+        
+        foreach ($entitiesToIndex as $entityToIndex) {
+            $this->toIndex($entityToIndex);
+            $reports [] = "Push " . $entityToIndex->getIndexableDocId();
+        }
+        
+        return $reports;
+    }
+
+    
+    public function requeueOne($entityToIndexClassName, $id)
+    {
+
+        $entityToIndex = $this->entityManager->getRepository($entityToIndexClassName)->findOneById($id);
+        $this->toIndex($entityToIndex);
+        
+        return "Push " . $entityToIndex->getIndexableDocId();
+    }
+
+    
+    public function requeueAll()
+    {
+        
+        $reports = array();
+        $entityToIndexClassNames = $this->entityManager
+                                        ->getRepository('OrangeSearchBundle:EntityToIndex')
+                                        ->findEntityToIndexClassNames();
+        foreach ($entityToIndexClassNames as $entityToIndexClassName) {
+            $reports = $reports + $this->requeue($entityToIndexClassName);
+        }
+        
+        return $reports;
+    }
+    
+    
+    public function deleteAll()
+    {
+        try {
+            $message = array('action' => 'delete-all');
+            $this->sender->send(json_encode($message));
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
+    }
+
 }

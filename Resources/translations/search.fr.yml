@@ -20,7 +20,7 @@ custom/ujm_exercise: Exercice
 create_at: Crée le
 edit_at: Modif.
 indexer_admin: Indexer Administration 
-select_indexable_entities: Selectionner les entitées à indexer
+select_indexable_entities: Selectionner les entités à indexer
 type_name: Type de Document
 owner_id: Propriétaire
 mooc_category_ids: Catégory
@@ -40,3 +40,4 @@ mooc_private: Mooc Privé
 mooc_public: Mooc Public
 filter_by: Filtrer par
 proposed: proposé par
+form_requeue_all: Réindexer

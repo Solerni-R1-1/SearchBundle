@@ -22,4 +22,17 @@ class EntityToIndexRepository extends EntityRepository
             return false;
         }
     }
+    
+    public function findEntityToIndexClassNames()
+    {
+        $classNames      = array();
+        $entitiesToIndex = $this->findByToIndex(true);
+        
+        foreach ($entitiesToIndex as $entity) {
+            $classNames [] = $entity->getClassName();
+        }
+        return $classNames;
+    }
+    
+    
 }

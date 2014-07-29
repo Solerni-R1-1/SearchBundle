@@ -179,7 +179,8 @@ class SearchController extends Controller
      * @return \Solarium\Core\Query 
      */
     private function createQuery($request) {
-            
+        
+            $logger = $this->container->get('logger');
             $keywords = $request->query->get('q');
             $selections = $this->parseQuery($request->query->get('ss'));
             $fixedSelections = $this->parseQuery($request->query->get('fs'));
@@ -187,9 +188,15 @@ class SearchController extends Controller
             $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
             $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
             
+            $accesRolesFilter = array('access_role_ids' => $this->getUserRolesIds());
+            
+            $logger->info(var_export($selections, true));
+            
+            
             $client = $this->get('solarium.client');
             // get a select query instance
             $query = $client->createSelect();
+            
             $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
             $query->setOmitHeader(false);
             if ($keywords) {
@@ -205,13 +212,14 @@ class SearchController extends Controller
             $hl->setSimplePostfix('</mark>');
             
             /* Selection */
-            foreach ($selections + $fixedSelections as $shortCut => $values) {
+            foreach ($selections + $fixedSelections + $accesRolesFilter as $shortCut => $values) {
                 $name = $this->getNameByShortCut($shortCut);
                 $expression = array();
                 foreach ($values as $key ) {
                         $expression [] = $name.':"'.$key.'"';
                 }
                 if ($expression) {
+                    $logger->info("(" . implode(" OR ", $expression) . ")");
                     $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
                 }
             }
@@ -274,4 +282,20 @@ class SearchController extends Controller
         }
     }
 
+    private function getUserRolesIds()
+    {
+        $user = $this->get('security.context')->getToken()->getUser();
+        $userAccessRoleIds = array();
+
+        if ( $user === 'anon.') {
+            $userAccessRoleIds [] = $this->get('claroline.manager.role_manager')
+                                         ->getRoleByName('ROLE_ANONYMOUS')
+                                         ->getId();
+        } else {
+            $userAccessRoleIds = array_map(function ($role) { return (int) $role->getId(); }, $user->getEntityRoles()->toArray());
+        }
+        
+        return $userAccessRoleIds;
+    } 
+           
 }

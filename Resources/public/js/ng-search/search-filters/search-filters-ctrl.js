@@ -11,7 +11,7 @@ searchApp.controller('searchFiltersCtrl', ['$scope','$filter', function($scope, 
         $scope.functions.filters.ispublic.set = function (status) {
             $scope.data.filters['ispub']['true'] = status; 
             $scope.data.filters['ispub']['false'] = ! status;
-            $scope.updateQuery($scope.data.filters);
+            $scope.updateQuery($scope.data.filters, 'ispub');
         };
         
         

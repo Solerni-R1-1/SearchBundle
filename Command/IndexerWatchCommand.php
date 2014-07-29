@@ -30,8 +30,8 @@ class IndexerWatchCommand extends ContainerAwareCommand
             $message = $server->recv();
             $indexerManager = $this->getContainer()->get('orange.search.indexer_manager');
             $messageArray = json_decode($message, true);
-            $indexerManager->process($messageArray);
-            $output->writeln($messageArray['action'] . ' ' . $messageArray['document_id']);
+            $report = $indexerManager->process($messageArray);
+            $output->writeln($report);
         }
     }
 

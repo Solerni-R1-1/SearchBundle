@@ -32,9 +32,7 @@ class IndexerManager
     private $security;
     private $indexerTodoManager;
     private $solariumClient;
-    private $progress;
-    private $reports;
-
+    
     /**
      * @DI\InjectParams({
      *     "entityManager"      = @DI\Inject("doctrine.orm.entity_manager"),
@@ -58,23 +56,23 @@ class IndexerManager
         $this->security = $security;
         $this->indexerTodoManager = $indexerTodoManager;
         $this->solariumClient = $solariumClient;
-
-        $this->reports = array();
     }
 
     public function process($message)
     {
+        $report = 'No action match';
+
         switch ($message['action']) {
             case 'index':
                 $entity = $this->entityManager
-                        ->getRepository($message['class_name'])
-                        ->find($message['entity_id']);
+                            ->getRepository($message['class_name'])
+                            ->find($message['entity_id']);
 
                 $update = $this->solariumClient->createUpdate();
-                $doc = $update->createDocument();
+                $doc    = $update->createDocument();
 
                 // fill the index document
-                $doc = $entity->fillIndexableDocument($doc);
+                $doc    = $entity->fillIndexableDocument($doc);
 
                 $update->addDocuments(array($doc));
                 $update->addCommit();
@@ -84,7 +82,7 @@ class IndexerManager
 
                 // If document is indexed, change the status of SyncIndex entry
                 if ($result->getStatus() == 0) {
-                    $this->reports [] = 'Document ' . $doc->id . ' indexed';
+                    $report = 'Document ' . $doc->id . ' indexed';
                 }
                 break;
                 
@@ -97,37 +95,30 @@ class IndexerManager
 
                 // If document is Deleted, remove SyncIndex entry
                 if ($result->getStatus() == 0) {
-                    $this->reports [] = 'Document ' . $message['document_id'] . ' deleted';
+                    $report = 'Document ' . $message['document_id'] . ' deleted';
                 }
+                break;
+
+            case 'delete-all':
+                // We delete the ressource
+                $update = $this->solariumClient->createUpdate();
+                $update->addDeleteQuery('id:*');
+                $update->addCommit();
+                $result = $this->solariumClient->update($update);
+
+                // If document is Deleted, remove SyncIndex entry
+                if ($result->getStatus() == 0) {
+                    $report = 'Delete all executed';
+                }
+                break;
+                
 
             default:
                 break;
         }
+        return $report;
     }
-
     
-    /*
-     *  
-     * 
-     */
-
-    public function requeueAll()
-    {
-        foreach ($this->getEntityToIndexClassNames() as $entityToIndexClassName) {
-            $entitiesToIndex = $this->entityManager->getRepository($entityToIndexClassName)->findAll();
-            foreach ($entitiesToIndex as $entityToIndex) {
-                $this->indexerTodoManager->toIndex($entityToIndex);
-                $this->reports [] = "Push " . $entityToIndex->getIndexableDocId();
-            }
-        }
-        $this->reports [] = "Done";
-    }
-
-    public function getReports()
-    {
-        return $this->reports;
-    }
-
     /**
      *  Insert or update entity to index
      * 
@@ -152,7 +143,7 @@ class IndexerManager
     {
         //all entities
         $entityNames = $this->entityManager->getConfiguration()->getMetadataDriverImpl()->getAllClassNames();
-        $choices = array();
+        $choices     = array();
 
         foreach ($entityNames as $entityName) {
             if (array_key_exists('Claroline\CoreBundle\Entity\IndexableInterface', class_implements($entityName))) {
@@ -163,14 +154,6 @@ class IndexerManager
         return $choices;
     }
 
-    public function getEntityToIndexClassNames()
-    {
-        $classNames = array();
-        $entitiesToIndex = $this->entityManager->getRepository('OrangeSearchBundle:EntityToIndex')->findByToIndex(true);
-        foreach ($entitiesToIndex as $entity) {
-            $classNames [] = $entity->getClassName();
-        }
-        return $classNames;
-    }
+
 
 }
