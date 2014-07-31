@@ -68,6 +68,7 @@ class IndexerManager
                             ->getRepository($message['class_name'])
                             ->find($message['entity_id']);
 
+                
                 $update = $this->solariumClient->createUpdate();
                 $doc    = $update->createDocument();
 

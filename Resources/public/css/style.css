@@ -130,8 +130,24 @@ mark {
 .upcase {
    text-transform: uppercase; 
 }
+.bold {
+   font-weight: bold;
+}
 
 .slrn-admin-reindexall {
    
 }
 
+.slrn-num-found { 
+   font-size: 0.9em;
+}
+
+.slrn-num-found_label{
+    font-weight: bold;
+   text-transform: uppercase;
+}
+
+.slrn-num-found_number {
+   font-weight: bold;
+   color: #FF004F;
+}

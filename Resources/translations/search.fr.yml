@@ -33,7 +33,7 @@ claroline_core_mooc_moocsession : Session mooc
 no result found: Aucun résultat trouvé
 result found: Résultats trouvés
 refine your search: Affiner votre recherche
-facet_mcat: Catégories
+facet_mcat: Thématique
 facet_type: Type de Document
 facet_owner: Entreprise
 mooc_private: Mooc Privé
@@ -41,3 +41,12 @@ mooc_public: Mooc Public
 filter_by: Filtrer par
 proposed: proposé par
 form_requeue_all: Réindexer
+all: Tous
+in_progress: En cours
+coming_soon: A venir
+finished: Terminé
+facet_status: Statuts
+all_mcat: Toutes les thématiques
+all_owner: Toutes les entreprises
+all_status: Tous les moocs
+

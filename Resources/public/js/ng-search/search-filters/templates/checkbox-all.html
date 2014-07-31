@@ -5,7 +5,7 @@
             type="checkbox"
             ng-change="functions.filters.checkboxAll.onChangeAllCheckbox(data.filters[facet.name], facet.name)"
             ng-model="data.filters[facet.name]['all']"/>
-        <label>All</label>
+        <label>{{'all_' + facet.name | trans }}</label>
         <ul class="slrn-ul-no-bullet">
             <li
                 ng-repeat="elmnt in facet.value">

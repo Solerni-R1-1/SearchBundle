@@ -81,28 +81,13 @@ class SearchController extends Controller
                     $doc[$field] = $value;
                 }
 
-                if (isset($doc['resource_id'])){
-                    $resourceId = $doc['resource_id'];
-
-                    $resourceNode = $this->entityManager
-                            ->getRepository("ClarolineCoreBundle:Resource\ResourceNode")
-                            ->findOneById($resourceId);
-
-                    $doc['is_granted'] = $this->security->isGranted('OPEN', $resourceNode);
-                } else {
-                    //todo 
-                    $doc['is_granted'] = true;
-                }
-
                 $highlightedDoc = $highlighting->getResult($document->id);
                 if ($highlightedDoc) {
                     foreach ($highlightedDoc as $field => $highlight) {
                         $doc[$field] =  implode(' (...)', $highlight);
                     }
                 }
-                /*if ( ! $doc['is_granted'] ) {
-                    $doc['content'] = preg_replace('/[\w|&|?]/', 'x', $doc['content']);
-                }*/
+
                 $documents [] = $doc;
             }
 
@@ -128,27 +113,39 @@ class SearchController extends Controller
                         $facets [] = $tmp;
                         break;
                     case 'mcat':
-
                         foreach ($facet as $value => $count) {
                         /* @var $moocSession \Claroline\CoreBundle\Entity\Mooc\MoocCategory */
-                        $moocCategory = $this->entityManager
-                            ->getRepository("ClarolineCoreBundle:Mooc\MoocCategory")
-                            ->findOneById($value);
-                             $tmp ['value'] []= array(
-                                    'count' => $count, 
-                                    'value' => $value,
-                                    'label' => $moocCategory->getName()
-                             );
+                            $moocCategory = $this->entityManager
+                                ->getRepository("ClarolineCoreBundle:Mooc\MoocCategory")
+                                ->findOneById($value);
+                            
+                            if ($moocCategory) {
+                                $tmp ['value'] []= array(
+                                       'count' => $count, 
+                                       'value' => $value,
+                                       'label' => $moocCategory->getName()
+                                );
+                            }
                         }
                         $facets [] = $tmp;                        
                         break;
+                    case 'status':
+                        foreach ($facet as $value => $count) {
+                            $tmp ['value'] []= array(
+                                   'count' => $count, 
+                                   'value' => $value,
+                                   'label' => $this->get('translator')->trans($value, array(), 'search')
+                            );
+                        }
+                        $facets [] = $tmp;
+                        break;                       
                     default:
                         foreach ($facet as $value => $count) {
-                             $tmp ['value'] []= array(
-                                    'count' => $count, 
-                                    'value' => $value,
-                                    'label' => $value
-                             );
+                            $tmp ['value'] []= array(
+                                   'count' => $count, 
+                                   'value' => $value,
+                                   'label' => $value
+                            );
                         }
                         $facets [] = $tmp; 
                         break;
@@ -181,22 +178,26 @@ class SearchController extends Controller
     private function createQuery($request) {
         
             $logger = $this->container->get('logger');
+
+            // get query string (keywords)
             $keywords = $request->query->get('q');
+            // get filters
             $selections = $this->parseQuery($request->query->get('ss'));
+            // get fixed filters 
             $fixedSelections = $this->parseQuery($request->query->get('fs'));
+            // get page
             $page = $request->query->get('page') ? $request->query->get('page') : 1;
+            // get item per page
             $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
+            // get activated filters
             $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
-            
+                        // get user roles ids
             $accesRolesFilter = array('access_role_ids' => $this->getUserRolesIds());
-            
-            $logger->info(var_export($selections, true));
             
             
             $client = $this->get('solarium.client');
             // get a select query instance
             $query = $client->createSelect();
-            
             $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
             $query->setOmitHeader(false);
             if ($keywords) {
@@ -204,6 +205,8 @@ class SearchController extends Controller
             } else {
                 $query->setQuery('*');
             }
+            
+            
             // get highlighting component and apply settings
             $hl = $query->getHighlighting();
             $hl->setFragsize(300);
@@ -213,35 +216,68 @@ class SearchController extends Controller
             
             /* Selection */
             foreach ($selections + $fixedSelections + $accesRolesFilter as $shortCut => $values) {
+                
                 $name = $this->getNameByShortCut($shortCut);
                 $expression = array();
-                foreach ($values as $key ) {
-                        $expression [] = $name.':"'.$key.'"';
+                
+                switch ($shortCut) {
+                    case 'status':
+                        foreach ($values as $key ) {
+                            switch ($key) {
+                                case 'in_progress':
+                                    $expression [] = '(start_date:[* TO NOW/DAY] AND end_date:[NOW/DAY TO * ])';
+                                    break;
+                                case 'coming_soon':
+                                    $expression [] = 'start_date:[NOW/DAY TO *]';
+                                    break;
+                                case 'finished':
+                                    $expression [] = 'end_date:[* TO NOW/DAY]';
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        break;
+
+                    default:
+                        foreach ($values as $key ) {
+                                $expression [] = $name.':"'.$key.'"';
+                        }
+                        break;
                 }
+                
                 if ($expression) {
                     $logger->info("(" . implode(" OR ", $expression) . ")");
                     $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
                 }
-            }
 
+            }
+            
+            
             // get the facetset component
             $facetSet = $query->getFacetSet();
-            
+       
+
+
             // create a facet field instance and set options
             foreach ($ativatedFilters as $activatedFilter) {
-                $facetSet->createFacetField($activatedFilter)
-                         ->setField($this->getNameByShortCut($activatedFilter));
+                switch ($activatedFilter) {
+                    case 'status':
+                        $facetSet->createFacetMultiQuery('status')
+                             ->createQuery('in_progress', 'start_date:[* TO NOW/DAY] AND end_date:[NOW/DAY TO * ]')
+                             ->createQuery('coming_soon', 'start_date:[NOW/DAY TO *]')
+                             ->createQuery('finished', 'end_date:[* TO NOW/DAY]');
+                        break;
+
+                    default:
+                        $facetSet->createFacetField($activatedFilter)
+                            ->setField($this->getNameByShortCut($activatedFilter));
+                        break;
+                }
+
             }
             return $query;
     }    
-
-    
-    private function assertIsGranted($attributes, $object = null)
-    {
-        if (false === $this->security->isGranted($attributes, $object)) {
-            throw new AccessDeniedException();
-        }
-    }
     
     private function parseQuery($paramsString)
     {
@@ -282,6 +318,12 @@ class SearchController extends Controller
         }
     }
 
+    
+    /**
+     * get current user roles ids
+     * 
+     * @return array user roles id
+     */
     private function getUserRolesIds()
     {
         $user = $this->get('security.context')->getToken()->getUser();
