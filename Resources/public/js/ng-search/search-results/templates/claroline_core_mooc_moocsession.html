@@ -1,53 +1,41 @@
-<div class="presentation__mooc">
-
-    <div class="presentation__mooc__left">
-        <span class="mooc__pic_w ">
-            <img class="mooc__pic"  src="{{ './' + document.mooc_illustration_path | tranfo:'zcrop_225_255' }}" alt=""/>
+<div class="presentation__mooc presentation__mooc--2-column"">
+	<div class="presentation__mooc__block presentation__mooc__pic">
+        <img class="presentation__mooc__block__image" 
+                 src="{{ './' + document.mooc_illustration_path | tranfo:'zcrop_301_216' }}" 
+                 alt="{{document.mooc_title}}" 
+                 width="301" 
+                 height="216"
+        >
+        <!--<img class="presentation__mooc__block__logo" src="" >-->
+	</div>
+	<div class="presentation__mooc__block presentation__mooc__text">
+		<h2 class="presentation__mooc__text__title">
+            {{document.mooc_title | truncate:30}}
+        </h2>
+        <span class="presentation__mooc__text__subtitle">
+            Proposé par 
+            <a href="{{ '\/entreprise\/catalogue\/' + document.mooc_owner_name + '\/' + document.mooc_owner_id|path }}">
+                {{document.mooc_owner_name}}
+            </a>
         </span>
-        <!--<span class="presentation__mooc__progression__title">Ma progression</span>
-        <span class="presentation__mooc__progression__wrapper">
-            <span class="presentation__mooc__progression__text londrina-solid">0%</span>
-            <span class="presentation__mooc__progression__100">
-                <span class="presentation__mooc__progression__xx" style="width:0%"></span>
-            </span>
-        </span>-->
-    </div>
-    <div class="presentation__mooc__right">
-
-        <div class="presentation__mooc__right__header">
-            <div class="presentation__mooc__right__header__title">{{document.mooc_title | truncate:30}}</div>
-            <div class="presentation__mooc__right__header__subtitle">{{'proposed' | trans }} {{document.mooc_owner_name}}</div>
+        <div class="presentation__mooc__text__desc" ng-bind-html = "document.content | truncate:85">
         </div>
-
-        <div class="presentation__mooc__right__body">
-            <div class="presentation__mooc__right__body__left">
-                <span class="presentation__mooc__right__body__left__theme"></span>
-               
-                <span class="presentation__mooc__right__body__left__desc" ng-bind-html = "document.content | truncate:100" > </span>
-                <span><a class="link__more" href="{{ document.mooc_view_url | path}}">En savoir plus</a></span>
-                <div class="clearfix"></div>
-
-                <a href="#" class="button__link presentation__mooc__right__body__left__link">
-                    <span class="button__link__span presentation__mooc__right__body__left__link__span">
-                        Accéder au cours
-                    </span>
-                </a> 
-            </div>
-            <div class="presentation__mooc__right__body__right">
-                <span class="presentation__mooc__right__body__right__date">
-                    <span class="valign">Début le {{document.start_date | date : 'MM/dd/yyyy'}} pour {{document.mooc_duration_i}} semaines</span></span>
-                <span class="presentation__mooc__right__body__right__badge">
-                    <span class="valign">Badgeant</span>
-                </span>
-                <span class="presentation__mooc__right__body__right__price">
-                    <span class="valign" ng-show="document.mooc_cost_i > 0">
-                            {{document.mooc_cost_i}} €
-                    </span>
-                    <span class="valign" ng-show="document.mooc_cost_i === 0">
-                            Gratuit
-                    </span>
-                </span>
-            </div>
+        <div class="presentation__mooc__text__button">
+            <a href="{{ document.mooc_view_url | path}}" class="btn btn-primary">
+                Accéder au cours
+            </a>
         </div>
+	</div>
+    <div class="presentation__mooc__block presentation__mooc__meta">
+        <span class="presentation__mooc__meta__date">
+            <p>Début le {{document.start_date | date : 'MM.dd.yyyy'}}</p>
+            <p>Fin le {{document.end_date | date : 'MM.dd.yyyy'}}</p>
+        </span>
+        <span class="presentation__mooc__meta__badge">
+            Badgeant
+        </span>
+        <span class="presentation__mooc__meta__price">
+            Mooc gratuit
+        </span>
     </div>
 </div>
