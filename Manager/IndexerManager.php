@@ -66,7 +66,7 @@ class IndexerManager
             case 'index':
                 $entity = $this->entityManager
                             ->getRepository($message['class_name'])
-                            ->find($message['entity_id']);
+                            ->findOneById($message['entity_id']);
 
                 
                 $update = $this->solariumClient->createUpdate();
