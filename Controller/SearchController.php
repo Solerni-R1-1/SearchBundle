@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\Routing\Router;
 use Claroline\CoreBundle\Entity\Resource\ResourceNode;
+use Orange\SearchBundle\Filter\FilterFactory;
 
 class SearchController extends Controller
 {
@@ -21,13 +22,6 @@ class SearchController extends Controller
     private $pagerFactory;
     private $security;
     private $entityManager;
-    
-    public static $shortCuts = array( 
-            'type_name'         => 'type',
-            'mooc_category_ids' => 'mcat',
-            'mooc_owner_name'   => 'owner',
-            'mooc_is_public_b'  => 'ispub'
-    );
 
     /**
      * @DI\InjectParams({
@@ -92,65 +86,9 @@ class SearchController extends Controller
             }
 
             $facets = array();
-            foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
-                $tmp = array(
-                    'name'  => $key,
-                    'label' => $this->get('translator')->trans("facet_".$key, array(), 'search'),
-                    'class' => "slrn-facet-$key",
-                    'type'  => "checkbox-all"
-                );            
-                switch ($key) {
-                    case 'ispub':
-                        $tmp ['type'] = 'checkbox';
-                    case 'type':
-                        foreach ($facet as $value => $count) {
-                             $tmp ['value'] []= array(
-                                    'count' => $count, 
-                                    'value' => $value,
-                                    'label' => $this->get('translator')->trans($value, array(), 'search')
-                             );
-                        }
-                        $facets [] = $tmp;
-                        break;
-                    case 'mcat':
-                        foreach ($facet as $value => $count) {
-                        /* @var $moocSession \Claroline\CoreBundle\Entity\Mooc\MoocCategory */
-                            $moocCategory = $this->entityManager
-                                ->getRepository("ClarolineCoreBundle:Mooc\MoocCategory")
-                                ->findOneById($value);
-                            
-                            if ($moocCategory) {
-                                $tmp ['value'] []= array(
-                                       'count' => $count, 
-                                       'value' => $value,
-                                       'label' => $moocCategory->getName()
-                                );
-                            }
-                        }
-                        $facets [] = $tmp;                        
-                        break;
-                    case 'status':
-                        foreach ($facet as $value => $count) {
-                            $tmp ['value'] []= array(
-                                   'count' => $count, 
-                                   'value' => $value,
-                                   'label' => $this->get('translator')->trans($value, array(), 'search')
-                            );
-                        }
-                        $facets [] = $tmp;
-                        break;                       
-                    default:
-                        foreach ($facet as $value => $count) {
-                            $tmp ['value'] []= array(
-                                   'count' => $count, 
-                                   'value' => $value,
-                                   'label' => $value
-                            );
-                        }
-                        $facets [] = $tmp; 
-                        break;
-                }
-
+            foreach ($resultset->getFacetSet()->getFacets() as $name => $facet) {
+                $filter = FilterFactory::create(FilterFactory::getShortCutByName($name));
+                $facets [] = $filter->buildResultFacet($facet);
             }
             
             ksort($facets);
@@ -166,7 +104,6 @@ class SearchController extends Controller
                 )
         );
     }
-    
     
 
     /**
@@ -206,78 +143,36 @@ class SearchController extends Controller
                 $query->setQuery('*');
             }
             
-            
             // get highlighting component and apply settings
             $hl = $query->getHighlighting();
             $hl->setFragsize(300);
             $hl->setFields('content');
             $hl->setSimplePrefix('<mark>');
             $hl->setSimplePostfix('</mark>');
+            // get the facetset component
+            $facetSet = $query->getFacetSet();
             
             /* Selection */
             foreach ($selections + $fixedSelections + $accesRolesFilter as $shortCut => $values) {
                 
-                $name = $this->getNameByShortCut($shortCut);
-                $expression = array();
-                
-                switch ($shortCut) {
-                    case 'status':
-                        foreach ($values as $key ) {
-                            switch ($key) {
-                                case 'in_progress':
-                                    $expression [] = '(start_date:[* TO NOW/DAY] AND end_date:[NOW/DAY TO * ])';
-                                    break;
-                                case 'coming_soon':
-                                    $expression [] = 'start_date:[NOW/DAY TO *]';
-                                    break;
-                                case 'finished':
-                                    $expression [] = 'end_date:[* TO NOW/DAY]';
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        break;
-
-                    default:
-                        foreach ($values as $key ) {
-                                $expression [] = $name.':"'.$key.'"';
-                        }
-                        break;
-                }
+                $filter = FilterFactory::create($shortCut);
+                $expression = $filter->getQueryExpression($values);
                 
                 if ($expression) {
-                    $logger->info("(" . implode(" OR ", $expression) . ")");
-                    $query->createFilterQuery($name)->setQuery("(" . implode(" OR ", $expression) . ")");
+                    $logger->info($expression);
+                    $query->createFilterQuery($filter->getName())->setQuery($expression);
                 }
-
             }
-            
-            
-            // get the facetset component
-            $facetSet = $query->getFacetSet();
-       
-
 
             // create a facet field instance and set options
             foreach ($ativatedFilters as $activatedFilter) {
-                switch ($activatedFilter) {
-                    case 'status':
-                        $facetSet->createFacetMultiQuery('status')
-                             ->createQuery('in_progress', 'start_date:[* TO NOW/DAY] AND end_date:[NOW/DAY TO * ]')
-                             ->createQuery('coming_soon', 'start_date:[NOW/DAY TO *]')
-                             ->createQuery('finished', 'end_date:[* TO NOW/DAY]');
-                        break;
-
-                    default:
-                        $facetSet->createFacetField($activatedFilter)
-                            ->setField($this->getNameByShortCut($activatedFilter));
-                        break;
-                }
+                $filter = FilterFactory::create($activatedFilter);
+                $filter->createFacet($facetSet);
 
             }
             return $query;
     }    
+    
     
     private function parseQuery($paramsString)
     {
@@ -292,32 +187,8 @@ class SearchController extends Controller
             }
         }
         return $result;
-    }
-
-    private function getShotCut() 
-    {
-        return self::$shortCuts;
-    }
+    }  
     
-    private function getNameByShortCut($shortCut)
-    {
-        $result = array_search($shortCut, $this->getShotCut());
-        if ($result) {
-            return $result;
-        } else {
-            return $shortCut;
-        }
-    }
-
-    private function getShortCutByName($name)
-    {
-        if (isset($this->getShotCut()[$name])) {
-            return $this->getShotCut()[$name];
-        } else {
-            return $name;
-        }
-    }
-
     
     /**
      * get current user roles ids
@@ -339,5 +210,5 @@ class SearchController extends Controller
         
         return $userAccessRoleIds;
     } 
-           
+    
 }
