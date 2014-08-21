@@ -84,10 +84,10 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                 $scope.data = _namespace;
 
             }).then(function() {
-                document.getElementById('slrn-wrapper').style.display = 'none';
-            }).then(function() {
                 _facetsBuilder(_namespace.query);
                 _filtersBuilder(_namespace.query, $scope.data.results.facets);
+            }).then(function() {
+                document.getElementById('slrn-wrapper').style.display = 'none';
             });
         };
 

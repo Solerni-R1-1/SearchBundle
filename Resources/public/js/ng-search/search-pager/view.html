@@ -1,6 +1,14 @@
 <pagination 
+    boundary-links="true"
+    previous-text="&lsaquo;" 
+    next-text="&rsaquo;" 
+    first-text="&laquo;" 
+    last-text="&raquo;"
+    max-size="4"
+    class="pull-right"
+    
     total-items="data.results.num_found" 
-    items-per-page="data.query.rpp" 
+    items-per-page="data.query.rpp"
     ng-model="data.query.page" 
     ng-change="search(data.query)">
         

@@ -1,4 +1,4 @@
-<div class="presentation__mooc presentation__mooc--2-column"">
+<div class="presentation__mooc presentation__mooc--2-column">
 	<div class="presentation__mooc__block presentation__mooc__pic">
         <img class="presentation__mooc__block__image" 
                  src="{{ './' + document.mooc_illustration_path | tranfo:'zcrop_301_216' }}" 
@@ -6,15 +6,17 @@
                  width="301" 
                  height="216"
         >
-        <!--<img class="presentation__mooc__block__logo" src="" >-->
-	</div>
+        <a href="{{ document.mooc_owner_cat_url | path }}">
+            <img class="presentation__mooc__block__logo" src="{{ './' + document.mooc_owner_logo_url | tranfo:'sr__35' }}" alt="{{document.mooc_owner_name}} logo" height="35" >
+        </a>
+        </div>
 	<div class="presentation__mooc__block presentation__mooc__text">
 		<h2 class="presentation__mooc__text__title">
             {{document.mooc_title | truncate:30}}
         </h2>
         <span class="presentation__mooc__text__subtitle">
             Proposé par 
-            <a href="{{ '\/entreprise\/catalogue\/' + document.mooc_owner_name + '\/' + document.mooc_owner_id|path }}">
+            <a href="{{ document.mooc_owner_cat_url | path }}">
                 {{document.mooc_owner_name}}
             </a>
         </span>
@@ -27,10 +29,10 @@
         </div>
 	</div>
     <div class="presentation__mooc__block presentation__mooc__meta">
-        <span class="presentation__mooc__meta__date">
+        <div class="presentation__mooc__meta__date">
             <p>Début le {{document.start_date | date : 'MM.dd.yyyy'}}</p>
             <p>Fin le {{document.end_date | date : 'MM.dd.yyyy'}}</p>
-        </span>
+        </div>
         <span class="presentation__mooc__meta__badge">
             Badgeant
         </span>

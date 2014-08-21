@@ -84,7 +84,8 @@ class SearchController extends Controller
 
                 $documents [] = $doc;
             }
-
+            
+            //rebuild facetes from result
             $facets = array();
             foreach ($resultset->getFacetSet()->getFacets() as $name => $facet) {
                 $filter = FilterFactory::create(FilterFactory::getShortCutByName($name));

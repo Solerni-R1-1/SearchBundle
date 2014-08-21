@@ -31,14 +31,21 @@ class FilterFactory
             case 'status':
                 $filter = new FilterStatus($name, $shortCut, "checkbox-all", $label, $class);
                 break;
+            
             case 'mcat':
                 $filter = new FilterMoocCategory($name, $shortCut, "checkbox-all", $label, $class);
                 break;
+            
             case 'type':
                 $filter = new FilterType($name, $shortCut, "checkbox-all", $label, $class);
                 break;
+            
             case 'owner':
                 $filter = new FilterStandard($name, $shortCut, "checkbox-all", $label, $class);
+                break;
+            
+            case 'duration':
+                $filter = new FilterDuration($name, $shortCut, "checkbox-all", $label, $class);
                 break;
             default:
                 $filter = new FilterStandard($name, $shortCut, "checkbox", $label, $class);

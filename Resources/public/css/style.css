@@ -56,6 +56,14 @@ mark {
 }
 
 #slrn-items-per-page {
+    margin: 20px 0px;
+    vertical-align: baseline;
+}
+
+#slrn-items-per-page label {
+    text-transform: uppercase;
+    font-weight: normal;
+    margin-bottom: 0px;
 }
 
 .slrn-ul-no-bullet {
@@ -92,30 +100,30 @@ mark {
 
 .slrn-num-found {
     margin-top: 1em;
-    background-color: #eeeeee;
-    padding: 0.5em;
+    padding:    0.5em;
+    font-size:  0.9em;
 }
 
 .slrn-search-refine {
-   font-size: 0.9em;
+   font-size:       0.9em;
    text-transform : uppercase; 
 }
 
 .slrn-header__subsearch {
-    margin-top: 1em;
-    margin-bottom: 1em;
+    margin-top:     1em;
+    margin-bottom:  1em;
 }
 
 
 .slrn-filter-ispub {
-    cursor: pointer;
-    padding: 1em 2em 1em 2em;
-    font-weight: bold;
+    cursor:         pointer;
+    padding:        1em 2em 1em 2em;
+    font-weight:    bold;
 }
 
 .slrn-filter-ispub-on {
     background: #4B667C;
-    color: #F6F6F6;
+    color:      #F6F6F6;
 }
 
 .slrn-filter-ispub-off{
@@ -138,9 +146,6 @@ mark {
    
 }
 
-.slrn-num-found { 
-   font-size: 0.9em;
-}
 
 .slrn-num-found_label{
     font-weight: bold;
@@ -150,4 +155,32 @@ mark {
 .slrn-num-found_number {
    font-weight: bold;
    color: #FF004F;
+}
+
+.slrn-footer__pager {
+    margin-top: 2em;
+    background-color: #EEEEEF;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.slrn-footer__pager ul > li > a {
+    border: 0;
+    background : #EEEEEF;
+    margin-left: 0.5em;
+    padding: 2px 8px;
+    color: #606060;
+    
+}
+
+.slrn-footer__pager ul > li.active > a {
+    border: 0;
+    background : #FF004F;
+    margin-left: 0.5em;
+    padding: 2px 8px;
+    color: #FFFFFF;
+}
+
+.slrn-footer__pager ul > li.disabled {
+    display: none;
 }

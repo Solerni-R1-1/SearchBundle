@@ -6,7 +6,7 @@ searchApp.factory('dataSearchFactory', ['$q', 'ngSearchService', function($q, ng
 
         var _request = function(query) {
             _deferred = $q.defer();
-            ngSearchService.post(query).then(function(response) {
+            ngSearchService.get(query).then(function(response) {
                 angular.forEach(response.data.documents, function(document) {
                     document.templateUrl = Claroline.Home.asset +
                             'bundles/orangesearch/js/ng-search/search-results/templates/' +

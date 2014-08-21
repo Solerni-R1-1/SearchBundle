@@ -25,21 +25,17 @@
                  ng-controller="searchBoxCtrl">
             </div>
         </div>
-        <div class="row slrn-header__subsearch">
-            <div class="col-md-3 upcase">
-                {{ "filter_by"| trans({}, 'search') }} :
+        {% if app.user %}
+            <div class="row slrn-header__subsearch">
+                <div class="col-md-3 upcase">
+                    {{ "filter_by"| trans({}, 'search') }} :
+                </div>
+                <div class="col-md-5" 
+                     ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/private-public.html')}}'"
+                     ng-controller="searchFiltersCtrl">
+                </div>
             </div>
-            <div class="col-md-5" 
-                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/private-public.html')}}'"
-                 ng-controller="searchFiltersCtrl">
-            </div>
-            <div class="col-md-4"
-                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'"
-                 ng-controller="searchPagerCtrl">
-            </div> 
-
-        </div>
-
+        {% endif %}
     </div>
     <div class="panel-body row">
         <div class="col-md-3">
@@ -59,8 +55,14 @@
     </div>
         
     <div class="panel-footer row" ng-controller="searchPagerCtrl">
-        <div class="col-md-9 col-md-offset-3"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'">
+        <div class="slrn-footer__pager col-md-9 col-md-offset-3 row">
+            <div class="col-md-6"
+                  ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'">
+                
+            </div>
+            <div class="col-md-6"
+                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'">
+            </div>
         </div>
     </div>
 </div>
