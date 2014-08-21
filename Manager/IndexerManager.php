@@ -64,10 +64,12 @@ class IndexerManager
 
         switch ($message['action']) {
             case 'index':
+            	$this->entityManager->flush();
+				$this->entityManager->clear();
                 $entity = $this->entityManager
                             ->getRepository($message['class_name'])
                             ->findOneById($message['entity_id']);
-
+                
                 
                 $update = $this->solariumClient->createUpdate();
                 $doc    = $update->createDocument();
