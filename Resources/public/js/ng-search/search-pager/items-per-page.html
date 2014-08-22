@@ -1,7 +1,7 @@
-<div  id="slrn-items-per-page">
+<div  class="slrn-items-per-page">
     <label> {{'items_per_page'|trans}} :</label>
-    <select 
-        ng-model="data.query.rpp" 
-        ng-options="i for i in ['5','10','30','50','100']">
-    </select>
+    <div class="slrn-items-per-page__cntr" ng-repeat="rpp in ['5','10','30','50','100']">
+         <input id="{{rpp}}" ng-change="search(data.query)" class="slrn-items-per-page__elmnt" type="radio" ng-model="data.query.rpp" name="rpp" value="{{rpp}}"> 
+         <label for="{{rpp}}">{{rpp}}</label>
+    </div>
 </div>
