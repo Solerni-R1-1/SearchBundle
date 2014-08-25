@@ -34,36 +34,37 @@
                      ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/private-public.html')}}'"
                      ng-controller="searchFiltersCtrl">
                 </div>
+
             </div>
         {% endif %}
     </div>
     <div class="panel-body row">
         <div class="col-md-3">
             <div class="slrn-num-found" 
-                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-num-found/view.html')}}'"
-                 ng-controller="searchNumFoundCtrl">
+                ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-num-found/view.html')}}'"
+                ng-controller="searchNumFoundCtrl">
             </div>
             <div
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/view.html')}}'"
-             ng-controller="searchFiltersCtrl">
+                ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/view.html')}}'"
+                ng-controller="searchFiltersCtrl">
             </div>
         </div>
-        <div class="col-md-9"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-results/view.html')}}'"
-             ng-controller="searchResultsCtrl">
-        </div>
-    </div>
         
-    <div class="panel-footer row" ng-controller="searchPagerCtrl">
-        <div class="slrn-footer__pager col-md-9 col-md-offset-3 row">
-            <div class="col-md-6"
-                  ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'">
-                
+        <div class="col-md-9">
+            <div
+                ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-results/view.html')}}'"
+                ng-controller="searchResultsCtrl">
             </div>
-            <div class="col-md-6"
-                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'">
+            <div class="slrn-footer__pager" 
+                ng-controller="searchPagerCtrl">
+                <div class="col-md-6"
+                     ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'">
+                </div>
+                <div class="col-md-6"
+                     ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'">
+                </div>
             </div>
-        </div>
+        </div>  
     </div>
 </div>
 {% endblock %}
