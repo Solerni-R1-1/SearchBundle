@@ -130,6 +130,8 @@ class IndexerTodoManager
     {
         
         $reports = array();
+        $this->deleteAll();
+        $reports [] = "Delete all";
         $entityToIndexClassNames = $this->entityManager
                                         ->getRepository('OrangeSearchBundle:EntityToIndex')
                                         ->findEntityToIndexClassNames();
