@@ -16,8 +16,12 @@ use Symfony\Component\Finder\Finder;
  */
 class FilterManager
 {
+    
+    const FILTER_DIRECTORY = 'Filter';
+    const FILTER_PATTERN   = 'Filter*.php';
+    
     private $filterClassNameMap;
-
+    
     /**
      * @DI\InjectParams({
      *     "translator"         = @DI\Inject("translator"),
@@ -70,16 +74,17 @@ class FilterManager
     public function createFilterClassNameMap()
     {
         $map = array();
-        $finder = new Finder();
         $ds = DIRECTORY_SEPARATOR;
-        $nameDirectory = 'Filter';
 
         foreach ($this->get('kernel')->getBundles() as $bundle) {
-            $filterDirectory = $bundle->getPath() . $ds . $nameDirectory;
+            $filterDirectory = $bundle->getPath() . $ds . self::FILTER_DIRECTORY;
             if (file_exists($filterDirectory)) {
-                $finder->files()->in($filterDirectory);
+                $finder = new Finder();
+                $fileIterator = $finder->files()
+                                   ->name(self::FILTER_PATTERN)
+                                   ->in($filterDirectory);
 
-                foreach ($finder as $file) {
+                foreach ($fileIterator as $file) {
                     $fp = fopen($file->getRealpath(), 'r');
                     $class = $namespace = $buffer = '';
                     $i = 0;
@@ -121,12 +126,13 @@ class FilterManager
                     if ($namespace && $class) {
                         $className = $namespace . '\\' . $class;
 
-                        if (in_array('Orange\SearchBundle\Filter\FilterInterface', class_implements($className)) &&
-                                !in_array($className, $map)) {
+                        if ( in_array('Orange\SearchBundle\Filter\InterfaceFilter', class_implements($className)) &&
+                            !in_array($className, $map)) {
                             $map [] = array(
                                 'class_name' => $className,
                                 'name' => $className::getName(),
-                                'shortcut' => $className::getShortCut()
+                                'shortcut' => $className::getShortCut(),
+                                'path'  => $file->getRealpath()
                             );
                         }
                     }

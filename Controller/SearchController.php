@@ -161,7 +161,7 @@ class SearchController extends Controller
             }
             $accessRoleExpression = "(" . implode(" OR ", $accessRoleExpressionArray) . ")";
             $logger->info($accessRoleExpression);
-            $query->createFilterQuery($accessRoleExpression);
+            $query->createFilterQuery('access_role_ids')->setQuery($accessRoleExpression);
                     
             /* Selection */
             foreach ($selections + $fixedSelections as $shortCut => $values) {

@@ -8,7 +8,7 @@ namespace Orange\SearchBundle\Filter;
  *
  * @author aameziane
  */
-abstract class AbstractFilter implements FilterInterface
+abstract class AbstractFilter implements InterfaceFilter
 {
 
     public static function getLabel() {

@@ -7,7 +7,7 @@ namespace Orange\SearchBundle\Filter;
  *
  * @author aameziane
  */
-interface FilterInterface
+interface InterfaceFilter
 {
     public static function getName();
     
