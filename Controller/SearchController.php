@@ -88,8 +88,12 @@ class SearchController extends Controller
             //rebuild facetes from result
             $facets = array();
             foreach ($resultset->getFacetSet()->getFacets() as $name => $facet) {
-                $filter = FilterFactory::create(FilterFactory::getShortCutByName($name));
-                $facets [] = $filter->buildResultFacet($facet);
+                
+                $filterClassName = $this->get('orange.search.filter_manager')
+                                        ->getFilterClassNameByShortCut($name);
+                var_dump($name);
+                var_dump($filterClassName);
+                $facets [] = $filterClassName::buildResultFacet($facet);
             }
             
             ksort($facets);
@@ -129,8 +133,7 @@ class SearchController extends Controller
             $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
             // get activated filters
             $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
-                        // get user roles ids
-            $accesRolesFilter = array('access_role_ids' => $this->getUserRolesIds());
+
             
             
             $client = $this->get('solarium.client');
@@ -139,7 +142,7 @@ class SearchController extends Controller
             $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
             $query->setOmitHeader(false);
             if ($keywords) {
-                $query->setQuery('content:'.$keywords);
+                $query->setQuery('content:'.$keywords .'OR ' . 'title:'.$keywords);
             } else {
                 $query->setQuery('*');
             }
@@ -152,23 +155,36 @@ class SearchController extends Controller
             $hl->setSimplePostfix('</mark>');
             // get the facetset component
             $facetSet = $query->getFacetSet();
+
             
+            //access role filters
+             $expression = array();
+             foreach ($this->getUserRolesIds() as $key) {
+                $expression [] = 'access_role_ids :"' . $key . '"';
+             }
+             $query->createFilterQuery("(" . implode(" OR ", $expression) . ")");
+                    
             /* Selection */
-            foreach ($selections + $fixedSelections + $accesRolesFilter as $shortCut => $values) {
+            foreach ($selections + $fixedSelections as $shortCut => $values) {
                 
-                $filter = FilterFactory::create($shortCut);
-                $expression = $filter->getQueryExpression($values);
-                
-                if ($expression) {
-                    $logger->info($expression);
-                    $query->createFilterQuery($filter->getName())->setQuery($expression);
+                $filterClassName = $this->get('orange.search.filter_manager')
+                                        ->getFilterClassNameByShortCut($shortCut);
+                if ($filterClassName) {
+                    $expression = $filterClassName::getQueryExpression($values);
+
+                    if ($expression) {
+                        $logger->info($expression);
+                        $query->createFilterQuery($filterClassName::getName())->setQuery($expression);
+                    }
                 }
             }
 
             // create a facet field instance and set options
             foreach ($ativatedFilters as $activatedFilter) {
-                $filter = FilterFactory::create($activatedFilter);
-                $filter->createFacet($facetSet);
+                $filterClassName = $this->get('orange.search.filter_manager')
+                                        ->getFilterClassNameByShortCut($activatedFilter);
+                var_dump($filterClassName);
+                $filterClassName::createFacet($facetSet);
 
             }
             return $query;

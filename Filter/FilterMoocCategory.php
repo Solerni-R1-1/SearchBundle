@@ -7,20 +7,30 @@ namespace Orange\SearchBundle\Filter;
  *
  * @author aameziane
  */
-class FilterMoocCategory extends FilterStandard
+class FilterMoocCategory extends AbstractFilter
 {
 
-    public function buildResultFacet($resultFacet) {
-        $facet = array(
-            'name'  => $this->getShortCut(),
-            'label' => $this->getLabel(),
-            'class' => $this->getClass(),
-            'type'  => $this->getViewtype()
-        );  
+    public static function getName() {
+        return 'mooc_category_ids';
+    }
+    
+    
+    public static function getShortCut() {
+        return 'mcat';
+    }
+    
+    
+    public static function getViewType() {
+        return 'checkbox-all';
+    }
+    
+    public static function buildResultFacet($resultFacet) {
+        
+        $facet = static::initFacetResult();
         
         foreach ($resultFacet as $value => $count) {
         /* @var $moocSession \Claroline\CoreBundle\Entity\Mooc\MoocCategory */
-            $moocCategory = $this->get('doctrine')
+            $moocCategory = self::get('doctrine')
                 ->getEntityManager()
                 ->getRepository("ClarolineCoreBundle:Mooc\MoocCategory")
                 ->findOneById($value);
@@ -35,4 +45,5 @@ class FilterMoocCategory extends FilterStandard
         }
         return $facet;
     }
+
 }

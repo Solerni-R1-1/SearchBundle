@@ -10,6 +10,7 @@ use Orange\SearchBundle\Entity\EntityToIndex;
 use JMS\SecurityExtraBundle\Annotation\Secure;
 use JMS\DiExtraBundle\Annotation as DI;
 use Doctrine\ORM\EntityManager;
+use Symfony\Component\Finder\Finder;
 
 class AdministrationController extends Controller
 {
@@ -98,6 +99,22 @@ class AdministrationController extends Controller
         return array(
             'form' => $form->createView()
         );
+    }
+    
+     /**
+     * @EXT\Route(
+     *      "/admin/test",
+     *      name = "orange_search_test"
+     * )
+     *
+     *
+     *  
+     * @return Response
+     */
+    public function testAction()
+    {
+        //return new Response(json_encode($map));
+        return new Response(json_encode($this->get('orange.search.filter_manager')->getFilterClassNameMap()));
     }
 
 }

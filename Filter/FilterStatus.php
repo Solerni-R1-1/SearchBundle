@@ -7,10 +7,24 @@ namespace Orange\SearchBundle\Filter;
  *
  * @author aameziane
  */
-class FilterStatus extends FilterStandard
+class FilterStatus extends AbstractFilter
 {
     
-    public function getQueryExpression($values)
+    public static function getName() {
+        return 'status';
+    }
+    
+    
+    public static function getShortCut() {
+        return 'status';
+    }
+    
+    
+    public static function getViewType() {
+        return 'checkbox-all';
+    }
+    
+    public static function getQueryExpression($values)
     {
         $expression = array();
         foreach ($values as $key) {
@@ -31,27 +45,23 @@ class FilterStatus extends FilterStandard
         return "(" . implode(" OR ", $expression) . ")";
     }
     
-    public function createFacet(&$facetSet)
+    public static function createFacet(&$facetSet)
     {
-        $facetSet->createFacetMultiQuery($this->getShortCut())
+        $facetSet->createFacetMultiQuery(static::getShortCut())
                              ->createQuery('in_progress', 'start_date:[* TO NOW/DAY] AND end_date:[NOW/DAY TO * ]')
                              ->createQuery('coming_soon', 'start_date:[NOW/DAY TO *]')
                              ->createQuery('finished', 'end_date:[* TO NOW/DAY]');
     }
     
-    public function buildResultFacet($resultFacet) {
-        $facet = array(
-            'name'  => $this->getShortCut(),
-            'label' => $this->getLabel(),
-            'class' => $this->getClass(),
-            'type'  => $this->getViewtype()
-        );  
+    public static function buildResultFacet($resultFacet) {
+        
+        $facet = static::initFacetResult();
         
         foreach ($resultFacet as $value => $count) {
             $facet ['value'] [] = array(
                 'count' => $count,
                 'value' => $value,
-                'label' => $this->get('translator')->trans($value, array(), 'search')
+                'label' => self::get('translator')->trans($value, array(), 'search')
             );
         }
         return $facet;
