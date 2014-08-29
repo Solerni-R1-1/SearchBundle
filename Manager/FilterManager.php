@@ -17,7 +17,6 @@ use Symfony\Component\Finder\Finder;
 class FilterManager
 {
     
-    const FILTER_DIRECTORY = 'Filter';
     const FILTER_PATTERN   = 'Filter*.php';
     
     private $filterClassNameMap;
@@ -71,13 +70,18 @@ class FilterManager
         return $kernel->getContainer()->get($serviceName);
     }
 
+    /**
+     * get all Filter classes and
+     * 
+     * @return array
+     */
     public function createFilterClassNameMap()
     {
         $map = array();
         $ds = DIRECTORY_SEPARATOR;
 
         foreach ($this->get('kernel')->getBundles() as $bundle) {
-            $filterDirectory = $bundle->getPath() . $ds . self::FILTER_DIRECTORY;
+            $filterDirectory = $bundle->getPath() . $ds . 'SearchFilter';
             if (file_exists($filterDirectory)) {
                 $finder = new Finder();
                 $fileIterator = $finder->files()
@@ -126,13 +130,13 @@ class FilterManager
                     if ($namespace && $class) {
                         $className = $namespace . '\\' . $class;
 
-                        if ( in_array('Orange\SearchBundle\Filter\InterfaceFilter', class_implements($className)) &&
+                        if ( in_array('Orange\SearchBundle\SearchFilter\InterfaceFilter', class_implements($className)) &&
                             !in_array($className, $map)) {
                             $map [] = array(
+                                'path'  => $file->getRealpath(),
                                 'class_name' => $className,
                                 'name' => $className::getName(),
-                                'shortcut' => $className::getShortCut(),
-                                'path'  => $file->getRealpath()
+                                'shortcut' => $className::getShortCut()
                             );
                         }
                     }

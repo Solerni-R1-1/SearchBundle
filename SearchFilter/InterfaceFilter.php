@@ -1,6 +1,6 @@
 <?php
 
-namespace Orange\SearchBundle\Filter;
+namespace Orange\SearchBundle\SearchFilter;
 
 /**
  * Description of FilterInterface
