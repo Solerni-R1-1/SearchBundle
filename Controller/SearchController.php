@@ -91,8 +91,6 @@ class SearchController extends Controller
                 
                 $filterClassName = $this->get('orange.search.filter_manager')
                                         ->getFilterClassNameByShortCut($name);
-                var_dump($name);
-                var_dump($filterClassName);
                 $facets [] = $filterClassName::buildResultFacet($facet);
             }
             
@@ -156,13 +154,14 @@ class SearchController extends Controller
             // get the facetset component
             $facetSet = $query->getFacetSet();
 
-            
             //access role filters
-             $expression = array();
-             foreach ($this->getUserRolesIds() as $key) {
-                $expression [] = 'access_role_ids :"' . $key . '"';
-             }
-             $query->createFilterQuery("(" . implode(" OR ", $expression) . ")");
+            $accessRoleExpressionArray = array();
+            foreach ($this->getUserRolesIds() as $id) {
+               $accessRoleExpressionArray [] = 'access_role_ids:"' . $id . '"';
+            }
+            $accessRoleExpression = "(" . implode(" OR ", $accessRoleExpressionArray) . ")";
+            $logger->info($accessRoleExpression);
+            $query->createFilterQuery($accessRoleExpression);
                     
             /* Selection */
             foreach ($selections + $fixedSelections as $shortCut => $values) {
@@ -183,7 +182,6 @@ class SearchController extends Controller
             foreach ($ativatedFilters as $activatedFilter) {
                 $filterClassName = $this->get('orange.search.filter_manager')
                                         ->getFilterClassNameByShortCut($activatedFilter);
-                var_dump($filterClassName);
                 $filterClassName::createFacet($facetSet);
 
             }
