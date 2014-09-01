@@ -1,0 +1,11 @@
+parameters:
+
+services:
+    orange.search.filter.type:
+        class: Orange\SearchBundle\Filter\FilterType
+        arguments:
+            - type_name
+            - type
+            - checkbox-all
+        tags:
+            -  { name: orange.search.filter, alias: type } 

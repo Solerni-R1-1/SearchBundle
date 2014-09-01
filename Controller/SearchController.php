@@ -89,9 +89,9 @@ class SearchController extends Controller
             $facets = array();
             foreach ($resultset->getFacetSet()->getFacets() as $name => $facet) {
                 
-                $filterClassName = $this->get('orange.search.filter_manager')
-                                        ->getFilterClassNameByShortCut($name);
-                $facets [] = $filterClassName::buildResultFacet($facet);
+                $filter = $this->get('orange.search.filter_manager')
+                               ->getFilter($name);
+                $facets [] = $filter->buildResultFacet($facet);
             }
             
             ksort($facets);
@@ -166,23 +166,24 @@ class SearchController extends Controller
             /* Selection */
             foreach ($selections + $fixedSelections as $shortCut => $values) {
                 
-                $filterClassName = $this->get('orange.search.filter_manager')
-                                        ->getFilterClassNameByShortCut($shortCut);
-                if ($filterClassName) {
-                    $expression = $filterClassName::getQueryExpression($values);
+                $filter = $this->get('orange.search.filter_manager')
+                               ->getFilter($shortCut);
+                if ($filter) {
+                    $expression = $filter->getQueryExpression($values);
 
                     if ($expression) {
                         $logger->info($expression);
-                        $query->createFilterQuery($filterClassName::getName())->setQuery($expression);
+                        $query->createFilterQuery($filter->getFieldName())->setQuery($expression);
                     }
                 }
             }
 
             // create a facet field instance and set options
             foreach ($ativatedFilters as $activatedFilter) {
-                $filterClassName = $this->get('orange.search.filter_manager')
-                                        ->getFilterClassNameByShortCut($activatedFilter);
-                $filterClassName::createFacet($facetSet);
+                $filter = $this->get('orange.search.filter_manager')
+                               ->getFilter($activatedFilter);
+                
+                $filter->createFacet($facetSet);
 
             }
             return $query;

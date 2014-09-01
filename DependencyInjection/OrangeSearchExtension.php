@@ -24,5 +24,6 @@ class OrangeSearchExtension extends Extension
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services/listener.yml');
+        $loader->load('services/service.yml');
     }
 }
