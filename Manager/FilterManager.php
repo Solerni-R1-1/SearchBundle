@@ -3,9 +3,6 @@
 namespace Orange\SearchBundle\Manager;
 
 use JMS\DiExtraBundle\Annotation as DI;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Translation\Translator;
-use Symfony\Component\Finder\Finder;
 use Orange\SearchBundle\Filter\InterfaceFilter;
 
 /**
@@ -15,28 +12,19 @@ use Orange\SearchBundle\Filter\InterfaceFilter;
  * 
  * @DI\Service("orange.search.filter_manager")
  */
-
 class FilterManager
 {
     
-    private $filterClassNameMap;
+    private $filters;
     
-    /**
-     * @DI\InjectParams({
-     *     "translator"         = @DI\Inject("translator")
-     * })
-     */
-    public function __construct(
-        Translator $translator
-    )
+    public function __construct()
     {
-        $this->translator = $translator;
         $this->filters = array();
     }
     
-    public function addFilter(InterfaceFilter $filter, $shortCut) 
+    public function addFilter(InterfaceFilter $filter, $alias) 
     {
-        $this->filters[$shortCut] = $filter;
+        $this->filters[$alias] = $filter;
     }
 
     
@@ -48,41 +36,4 @@ class FilterManager
 
         return;
     }
-    
-    
-    public function getFilterClassNameMap()
-    {
-        return $this->filterClassNameMap;
-    }
-
-    public function getFilterClassName($name)
-    {
-
-        foreach ($this->getFilterClassNameMap() as $filter) {
-            if ($filter['name'] == $name) {
-                return $filter['class_name'];
-            }
-        }
-    }
-    
-    public function getFilterClassNameByShortCut($name)
-    {
-
-        foreach ($this->getFilterClassNameMap() as $filter) {
-            if ($filter['shortcut'] == $name) {
-                return $filter['class_name'];
-            }
-        }
-    }
-
-    public static function get($serviceName)
-    {
-        global $kernel;
-        if ('AppCache' == get_class($kernel)) {
-            $kernel = $kernel->getKernel();
-        }
-        return $kernel->getContainer()->get($serviceName);
-    }
-
-
 }

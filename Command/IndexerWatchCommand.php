@@ -17,7 +17,7 @@ class IndexerWatchCommand extends ContainerAwareCommand
     {
         parent::configure();
         $this->setName('claroline:indexer:watch')
-                ->setDescription('Watch synchronise db solr entities');
+             ->setDescription('Wait for entities to index');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
