@@ -46,10 +46,10 @@ class FilterStandard implements InterfaceFilter
         
     }
     
-    public function buildResultFacet($resultFacet) 
+    public function postProcessResultFacet($resultFacet) 
     {
 
-        $returnResultFacet = $this->getResultFacet();
+        $returnResultFacet = $this->initResultFacet();
         foreach ($resultFacet as $value => $count) {
             $returnResultFacet ['value'] [] = array(
                 'count' => $count,
@@ -60,11 +60,13 @@ class FilterStandard implements InterfaceFilter
         return $returnResultFacet;
     }
 
-    public function getLabel() {
+    public function getLabel() 
+    {
         return $this->get('translator')->trans("facet_".$this->getShortCut(), array(), 'search');
     }
     
-    public function getCssClass() {
+    public function getCssClass() 
+    {
         return "slrn-facet-".$this->getShortCut();
     }
     
@@ -83,7 +85,7 @@ class FilterStandard implements InterfaceFilter
         return $this->viewType;
     }
 
-    public function getResultFacet()
+    public function initResultFacet()
     {
         return $this->resultFacet;
     }

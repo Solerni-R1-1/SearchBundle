@@ -141,7 +141,6 @@ class IndexerManager
     /*
      * Get all Indexable entities
      */
-
     public function getAllIndexableEntities()
     {
         //all entities

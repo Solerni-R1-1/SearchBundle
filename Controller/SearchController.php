@@ -91,7 +91,7 @@ class SearchController extends Controller
                 
                 $filter = $this->get('orange.search.filter_manager')
                                ->getFilter($name);
-                $facets [] = $filter->buildResultFacet($facet);
+                $facets [] = $filter->postProcessResultFacet($facet);
             }
             
             ksort($facets);
@@ -140,7 +140,7 @@ class SearchController extends Controller
             $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
             $query->setOmitHeader(false);
             if ($keywords) {
-                $query->setQuery('content:'.$keywords .'OR ' . 'title:'.$keywords);
+                $query->setQuery('content:"'.$keywords .'"');
             } else {
                 $query->setQuery('*');
             }

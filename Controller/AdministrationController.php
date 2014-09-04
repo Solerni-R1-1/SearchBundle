@@ -88,7 +88,6 @@ class AdministrationController extends Controller
             );
                         
             if (isset($data['reindexAll']) && $data['reindexAll']) {
-                $this->get('orange.search.indexer_todo_manager')->deleteAll();
                 $this->get('orange.search.indexer_todo_manager')->requeueAll();
 
                 $this->get('session')->getFlashBag()->add(
