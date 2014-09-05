@@ -3,17 +3,17 @@
 namespace Orange\SearchBundle\Filter;
 
 /**
- * Description of FilterType
+ * Facet based on the document type
  *
  * @author aameziane
  */
 class FilterType extends FilterStandard
 {
 
-    public function buildResultFacet($resultFacet) 
+    public function postProcessResultFacet($resultFacet) 
     {
         
-        $returnResultFacet = $this->getResultFacet();
+        $returnResultFacet = $this->initResultFacet();
         foreach ($resultFacet as $value => $count) {
             $returnResultFacet ['value'] [] = array(
                 'count' => $count,
