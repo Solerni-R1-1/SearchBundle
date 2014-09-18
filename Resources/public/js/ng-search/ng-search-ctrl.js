@@ -26,11 +26,17 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
         var _facetsBuilder = function(query) {
             if (query.se) {
                 var indexOfFacet = _indexOfObjByName($scope.data.facets, query.se);
+                var isAll = true;
                 
-                if (indexOfFacet >= 0 ) {
+                angular.forEach(query.ss.split(','), function(ss) {
+                	if (ss.indexOf("status__") == 0) {
+                		isAll = false;
+                	}
+                });
+                if (indexOfFacet >= 0 && !isAll) {
                     $scope.data.results.facets[indexOfFacet] = $scope.data.facets[indexOfFacet];
                 }
-            } 
+            }
            $scope.data.facets = $scope.data.results.facets;
         };
         
