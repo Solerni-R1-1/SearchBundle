@@ -25,7 +25,7 @@ searchApp.factory('dataSearchFactory', ['$q', 'ngSearchService', function($q, ng
                 _data = response.data;
                 _deferred.resolve(_data);
             }, function() {
-                console.log('error service');
+                //console.log('error service');
                 _deferred.reject('Erreur');
             });
             return _deferred.promise;

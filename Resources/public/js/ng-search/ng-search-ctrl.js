@@ -77,7 +77,7 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
 
         var _search = function(query) {
             document.getElementById('slrn-wrapper').style.display = 'block';
-            console.log(query);
+            //console.log(query);
             dataSearchFactory.request(query).then(function(data) {
                 _namespace.results = data;
                 _namespace.query = query;
