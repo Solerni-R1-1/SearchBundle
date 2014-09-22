@@ -25,7 +25,7 @@
                  ng-controller="searchBoxCtrl">
             </div>
         </div>
-        {% if app.user and app.user.getSessionsByUsers()|length > 0 %}
+        {% if app.user and app.user.getSessionsByUsers()|length > 0  or is_granted('ROLE_ADMIN') %}
             <div class="row slrn-header__subsearch">
                 <div class="col-md-3 upcase">
                     {{ "filter_by"| trans({}, 'search') }} :
