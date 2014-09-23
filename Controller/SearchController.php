@@ -11,26 +11,39 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration as EXT;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\Routing\Router;
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
+use Orange\SearchBundle\Filter\FilterFactory;
 
 class SearchController extends Controller
 {
 
     private $pagerFactory;
-    protected $configSolr;
     private $security;
+    private $entityManager;
 
     /**
      * @DI\InjectParams({
-     *     "pagerFactory" = @DI\Inject("claroline.pager.pager_factory"),
-     *     "security"     = @DI\Inject("security.context")
+     *     "pagerFactory"  = @DI\Inject("claroline.pager.pager_factory"),
+     *     "security"      = @DI\Inject("security.context"),
+     *     "entityManager" = @DI\Inject("doctrine.orm.entity_manager"),
+     *     "router"        = @DI\Inject("router")
      * })
      */
-    public function __construct(PagerFactory $pagerFactory, SecurityContextInterface $security)
+    public function __construct(
+        PagerFactory $pagerFactory, 
+        SecurityContextInterface $security,
+        EntityManager $entityManager,
+        Router $router)
     {
         $this->pagerFactory = $pagerFactory;
         $this->security = $security;
+        $this->entityManager = $entityManager;
+        $this->router = $router;
+
     }
+    
 
     /**
      * @EXT\Route(
@@ -42,93 +55,51 @@ class SearchController extends Controller
      *
      * @return Response
      */
-    public function indexAction()
+    public function searchAction($_format)
     {
+        if ($_format == 'html') {
+            return $this->render('OrangeSearchBundle:Search:response.html.twig');
+        }
         $logger = $this->container->get('logger');
-        
-        $request = $this->getRequest();
-        $_format = $request->getRequestFormat();
-        $page = $this->getRequest()->get('page') ? $this->getRequest()->get('page') : 1;
-        $keywords = $this->getRequest()->get('keywords');
-        $filters = $this->getRequest()->get('filters') ? $this->getRequest()->get('filters') : array();
-        $itemsPerPage = $this->getRequest()->get('items_per_page') ? $this->getRequest()->get('items_per_page') : 3;
-        $client = $this->get('solarium.client');
-        // get a select query instance
-        $query = $client->createSelect();
-        $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
-        $query->setOmitHeader(false);
+        try {
+            $client = $this->get('solarium.client');
+            $request = $this->getRequest();
+            $resultset = $client->select($this->createQuery($request));
+            $highlighting = $resultset->getHighlighting();
 
-        if ($request->getMethod() == 'POST') {
+            $documents = array();
+            foreach ($resultset as $document) {
+                $doc = array();
 
-            if ($keywords) {
-                $query->setQuery('content:'.$keywords);
-            } else {
-                $query->setQuery('*');
-            }
-        }
-        // get highlighting component and apply settings
-        $hl = $query->getHighlighting();
-        $hl->setFragsize(300);
-        $hl->setFields('content');
-        $hl->setSimplePrefix('<mark>');
-        $hl->setSimplePostfix('</mark>');
-        
-        /* Filtrage */
-        foreach ($filters as $name => $values) {
-            $expression = array();
-            foreach ($values as $key => $value) {
-                if ($value == false) {
-                    $expression [] = $name.':"'.$key.'"';
+                foreach ($document->getFields() as $field => $value) {
+                    $doc[$field] = $value;
                 }
-            }
-            if ($expression) {
-                $query->createFilterQuery($name)->setQuery("NOT(" . implode(" OR ", $expression) . ")");
-            }
-        }
-        
-        //$query->createFilterQuery('type_name')->setQuery('NOT (type_name:claroline_forum_message OR type_name:claroline_forum_category)');
-        //$query->createFilterQuery('owner_name')->setQuery('owner_name:*');
-        
-        // get the facetset component
-        $facetSet = $query->getFacetSet();
-        // create a facet field instance and set options
-        $facetSet->createFacetField('type_name')->setField('type_name');
-        $facetSet->createFacetField('owner_name')->setField('owner_name');
-        $facetSet->createFacetField('wks_id')->setField('wks_id');
-        
- 
-        
-        $resultset = $client->select($query);
-        $highlighting = $resultset->getHighlighting();
-        
-        $documents = array();
-        foreach ($resultset as $document) {
-            $doc = array();
-            foreach ($document->getFields() as $field => $value) {
-                $doc[$field] = $value;
-            }
-            $highlightedDoc = $highlighting->getResult($document->id);
-            if ($highlightedDoc) {
-                foreach ($highlightedDoc as $field => $highlight) {
-                    $doc[$field] =  implode(' (...)', $highlight);
+
+                $highlightedDoc = $highlighting->getResult($document->id);
+                if ($highlightedDoc) {
+                    foreach ($highlightedDoc as $field => $highlight) {
+                        $doc[$field] =  implode(' (...)', $highlight);
+                    }
                 }
-            }
-            $documents [] = $doc;
-        }
 
-        $facets = array();
-        foreach ($resultset->getFacetSet()->getFacets() as $key => $facet) {
-            $tmp = array('name' => $key);
-
-            foreach ($facet as $name => $count) {
-                 $tmp ['value'] []= array('count' => $count, 'value' => $name);
+                $documents [] = $doc;
             }
-            $facets [] = $tmp;
             
+            //rebuild facetes from result
+            $facets = array();
+            foreach ($resultset->getFacetSet()->getFacets() as $name => $facet) {
+                
+                $filter = $this->get('orange.search.filter_manager')
+                               ->getFilter($name);
+                $facets [] = $filter->postProcessResultFacet($facet);
+            }
+            
+            ksort($facets);
+        } catch (Exception $ex) {
+            $logger->error($ex->getMessage());
         }
-
         return $this->render(
-            'OrangeSearchBundle:Search:response.' . $_format . '.twig', 
+            'OrangeSearchBundle:Search:response.json.twig', 
                 array(
                     'resultset' => $resultset,
                     'documents' => $documents,
@@ -136,229 +107,124 @@ class SearchController extends Controller
                 )
         );
     }
+    
 
     /**
-     * @EXT\Route(
-     *     "/json",
-     *     name = "orange_search_rq"
-     * )
+     * process request GET query 
+     * @param type $request
      * 
-
-      public function search()
-      {
-      $client = $this->get('solarium.client');
-      // get a select query instance
-      $query = $client->createQuery($client::QUERY_SELECT);
-
-      // this executes the query and returns the result
-      $resultsset = $client->execute($query);
-      $results = array();
-
-      foreach ($resultsset as $document) {
-      $doc = array();
-      foreach ($document->getFields() as $key => $value) {
-      $doc[$key] = $value;
-      }
-      $results [] = $doc;
-      }
-
-      return new Response(json_encode($results));
-      }
+     * @return \Solarium\Core\Query 
      */
+    private function createQuery($request) {
+        
+            $logger = $this->container->get('logger');
 
-    /**
-     * @EXT\Route("/config")
-     * 
-     */
-    public function configAction()
-    {
-        $solr_endpoints = $this->container->getParameter('index_endpoint');
-        //var_dump($solr_endpoints);
-    }
+            // get query string (keywords)
+            $keywords = $request->query->get('q');
+            // get filters
+            $selections = $this->parseQuery($request->query->get('ss'));
+            // get fixed filters 
+            $fixedSelections = $this->parseQuery($request->query->get('fs'));
+            // get page
+            $page = $request->query->get('page') ? $request->query->get('page') : 1;
+            // get item per page
+            $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
+            // get activated filters
+            $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
 
-    /**
-     * @EXT\Route(
-     *     "/ping/",
-     *     name = "orange_search_ping"
-     * )
-     *
-     * @EXT\Template("OrangeSearchBundle:AdminSolr:index.html.twig")
-     *
-     * @return Response
-     */
-    public function pingAction()
-    {
-        $this->assertIsGranted('ROLE_USER');
-
-        $client = $this->get('solarium.client');
-        $ping = $client->createPing();
-
-        try {
-            $result = $client->ping($ping);
-
-            return array(
-                'status' => 'Serveur accessible'
-            );
-        } catch (Solarium\Exception $e) {
-            return array(
-                'status' => 'Serveur non disponible'
-            );
-        }
-    }
-
-    /**
-     * @EXT\Route(
-     *     "/requeshjgt/page/{page}",
-     *     name = "orange_search_request",
-     *     defaults={"page"=1}
-     * )
-     *
-     * @EXT\Template("OrangeSearchBundle:Search:reponse.html.twig")
-     *
-     * @return Response
-     */
-    public function requestAction($page, $nbByPage = 50)
-    {
-        $search = $this->getRequest()->get('search');
-        $filterType = $this->getRequest()->get('filter_type');
-        $this->assertIsGranted('ROLE_USER');
-
-        $client = $this->get('solarium.client');
-        $ping = $client->createPing();
-        $manager = $this->getDoctrine()->getManager();
-        try {
-            $result = $client->ping($ping);
-
-            $select = $client->createSelect();
+            
+            
+            $client = $this->get('solarium.client');
+            // get a select query instance
+            $query = $client->createSelect();
+            $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
+            $query->setOmitHeader(false);
+            if ($keywords) {
+                $query->setQuery('content:"'.$keywords .'"');
+            } else {
+                $query->setQuery('*');
+            }
+            
+            // get highlighting component and apply settings
+            $hl = $query->getHighlighting();
+            $hl->setFragsize(300);
+            $hl->setFields('content');
+            $hl->setSimplePrefix('<mark>');
+            $hl->setSimplePostfix('</mark>');
             // get the facetset component
-            $facetSet = $select->getFacetSet();
+            $facetSet = $query->getFacetSet();
+
+            //access role filters
+            $accessRoleExpressionArray = array();
+            foreach ($this->getUserRolesIds() as $id) {
+               $accessRoleExpressionArray [] = 'access_role_ids:"' . $id . '"';
+            }
+            $accessRoleExpression = "(" . implode(" OR ", $accessRoleExpressionArray) . ")";
+            $logger->info($accessRoleExpression);
+            $query->createFilterQuery('access_role_ids')->setQuery($accessRoleExpression);
+                    
+            /* Selection */
+            foreach ($selections + $fixedSelections as $shortCut => $values) {
+                
+                $filter = $this->get('orange.search.filter_manager')
+                               ->getFilter($shortCut);
+                if ($filter) {
+                    $expression = $filter->getQueryExpression($values);
+
+                    if ($expression) {
+                        $logger->info($expression);
+                        $query->createFilterQuery($filter->getFieldName())->setQuery($expression);
+                    }
+                }
+            }
 
             // create a facet field instance and set options
-            $facetSet->createFacetField('content-type')->setField('type_name');
-            $facetSet->createFacetField('wks')->setField('wks_id');
+            foreach ($ativatedFilters as $activatedFilter) {
+                $filter = $this->get('orange.search.filter_manager')
+                               ->getFilter($activatedFilter);
+                
+                $filter->createFacet($facetSet);
 
-            // Filtrage
-            if (($filterType != "all") && ($filterType != "")) {
-                $select->createFilterQuery('type_name')->setQuery('type_name:' . $filterType);
             }
-
-            $select->setQuery($search);
-            $select->setStart(((int) $page - 1) * $nbByPage)->setRows($nbByPage);
-            $select->setOmitHeader(false);
-
-            $request = $client->createRequest($select)->addParam('qt', 'claroline');
-            $response = $client->executeRequest($request);
-            $results = $client->createResult($select, $response);
-
-            $nb = $results->getNumFound();
-            $time = 0;
-
-            // display facet results
-            $facetResult = $results->getFacetSet()->getFacet('content-type');
-            $facetResultWks = $results->getFacetSet()->getFacet('wks');
-            $facetWks = array();
-            foreach ($facetResultWks as $key => $frWks) {
-                $wks = $manager->getRepository('Claroline\CoreBundle\Entity\Workspace\AbstractWorkspace')->find($key);
-                $facetWks[$wks->getName()] = $frWks;
-            }
-
-            $lr = array();
-            foreach ($results as $result) {
-
-                $r = array();
-                foreach ($result AS $field => $value) {
-                    if (is_array($value))
-                        $value = implode(', ', $value);
-
-                    $r[$field] = $value;
-                }
-
-                // We check if user has access to the resource
-                $resourceNode = $manager->getRepository('Claroline\CoreBundle\Entity\Resource\ResourceNode')->find($r["resource_id"]);
-
-                if ($this->security->isGranted("open", new ResourceCollection(array($resourceNode)))) {
-                    $r["owner"] = true;
-                } else {
-                    $r["owner"] = false;
-                }
-
-                if (!isset($r["mime_type"]))
-                    $r["mime_type"] = "";
-
-                // Traitement à faire sur la liste réponse
-                // Pour un fichier on tronque le content
-                // TODO
-                if (($r["mime_type"] == "application/pdf") && isset($r["content"]))
-                    $r["content"] = substr($r["content"], 0, 200);
-
-                // Lecture du nom du WKS
-                if (isset($r["wks_id"])) {
-                    $wks = $manager->getRepository('Claroline\CoreBundle\Entity\Workspace\AbstractWorkspace')->find($r["wks_id"]);
-                    $r["wks_name"] = $wks->getName();
-                } else {
-                    $r["wks_name"] = "";
-                }
-
-                // TODO - Est-ce qu'il s'agit d'une transcription texte d'une vidéo
-                if (isset($r["attr_custom:dailymotion"])) {
-                    
-                } else
-                    $r["attr_custom:dailymotion"] = "";
-
-
-                // Lecture du sujet du owner
-                if (isset($r["user_id"])) {
-                    $owner = $manager->getRepository('Claroline\CoreBundle\Entity\User')->find($r["user_id"]);
-                    $r["first_name"] = $owner->getFirstName();
-                    $r["last_name"] = $owner->getLastName();
-                }
-
-                // Lecture du sujet du forum si présent
-                if (isset($r["subject_id"])) {
-                    $forumSubject = $manager->getRepository('Claroline\ForumBundle\Entity\Subject')->find($r["subject_id"]);
-                    $r["name"] = $forumSubject->getTitle();
-                }
-
-                array_push($lr, $r);
-                unset($r);
-            }
-
-            //$pager = $this->pagerFactory->createPagerFromArray($lr, $page, 5);
-            //return $this->render('OrangeSearchBundle:Search:reponse.html.twig', array('name' => $name, 'results' => $lr, 'facets' => $facetResult, 'facetsWks' => $facetWks));
-
-            $currentUrl = substr($this->getRequest()->getUri(), 0, strpos($this->getRequest()->getUri(), "/search/request"));
-
-            $ressourceType = array();
-            $ressourceType[] = "all_resources";
-            $ressourceType[] = "custom/claroline_forum";
-            $ressourceType[] = "custom/text";
-            $ressourceType[] = "custom/file";
-            $ressourceType[] = "custom/claroline_announcement_aggregate";
-            $ressourceType[] = "custom/icap_wiki";
-            $ressourceType[] = "custom/ujm_exercise";
-
-            return array(
-                'name' => $search,
-                'nbResults' => $nb,
-                'nbByPage' => $nbByPage,
-                'page' => $page,
-                'results' => $lr,
-                'facets' => $facetResult,
-                'facetsWks' => $facetWks,
-                'url' => $currentUrl,
-                'time' => $time,
-                'resourcesType' => $ressourceType
-            );
-        } catch (Solarium\Exception\HttpException $e) {
-            echo 'Ping query failed';
-        }
-    }
-
-    private function assertIsGranted($attributes, $object = null)
+            return $query;
+    }    
+    
+    
+    private function parseQuery($paramsString)
     {
-        if (false === $this->security->isGranted($attributes, $object)) {
-            throw new AccessDeniedException();
+        $result = array();
+        if (!empty($paramsString)) {
+            $params = explode(',', $paramsString);
+            foreach ($params as $param) {
+                $sub_param = explode('__', $param);
+                if (count($sub_param) == 2) {
+                    $result [$sub_param[0]] [] = $sub_param[1];
+                }
+            }
         }
-    }
+        return $result;
+    }  
+    
+    
+    /**
+     * get current user roles ids
+     * 
+     * @return array user roles id
+     */
+    private function getUserRolesIds()
+    {
+        $user = $this->get('security.context')->getToken()->getUser();
+        $userAccessRoleIds = array();
 
+        if ( $user === 'anon.') {
+            $userAccessRoleIds [] = $this->get('claroline.manager.role_manager')
+                                         ->getRoleByName('ROLE_ANONYMOUS')
+                                         ->getId();
+        } else {
+            $userAccessRoleIds = array_map(function ($role) { return (int) $role->getId(); }, $user->getEntityRoles()->toArray());
+        }
+        
+        return $userAccessRoleIds;
+    } 
+    
 }

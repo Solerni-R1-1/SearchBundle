@@ -1,56 +1,212 @@
 .slrn-sr-elmnt  {
-    background-color: #f1f1f1;
-    padding : 1em;
-    margin-top: 1em;
+    background-color:   #f1f1f1;
+/*    padding : 1em;*/
+    margin-top:         1em;
     
 }
 .slrn-sr-elmnt h3 {
-    font-size: 1.3em;
-    margin: 0;
+    font-size:          1.3em;
+    margin:             0;
 }
 
 .slrn-sr-elmnt-date {
-    font-size: 0.9em;
-    margin-top: 1em;
+    font-size:          0.9em;
+    margin-top:         1em;
 }
 
 .slrn-sr-elmnt-date-creation {
-  margin-right: 2em;  
-}
-
-.slrn-sr-elmnt-date-modification {
-    
+  margin-right:         2em;  
 }
 
 .slrn-sr {
-    list-style-type: none;
-    padding-left: 0;
+    list-style-type:    none;
+    padding-left:       0;
 }
 
 .slrn-sr-elmnt-header {
-    text-transform:uppercase;
+    text-transform:     uppercase;
 }
 
 mark {
-    background-color: #fbf069;
+    background-color:   #fbf069;
 }
 
 #slrn-wrapper {
-    height: 100%;
-    width: 100%;
-    position: fixed;
-    top : 0;
-    left: 0;
-    z-index: 10000;
-    background-color: rgba(200,200,200, 0.5);
+    height:             100%;
+    width:              100%;
+    position:           fixed;
+    top :               0;
+    left:               0;
+    z-index:            10000;
+    background-color:   rgba(200,200,200, 0.5);
 }
 
 #slrn-loader {
-    position: absolute;
-    top: 50%;
-    left:50%;
-    margin-top: -32px;
-    margin-left: -32px;
-    width: 64px;
-    height: 64px;
+    position:           absolute;
+    top:                50%;
+    left:               50%;
+    margin-top:         -32px;
+    margin-left:        -32px;
+    width:              64px;
+    height:             64px;
 }
+
+.slrn-items-per-page {
+    margin:             20px 0px;
+    vertical-align:     baseline;
+}
+
+.slrn-items-per-page label {
+    text-transform:     uppercase;
+    font-weight:        normal;
+    margin-bottom:      0px;
+}
+
+.slrn-ul-no-bullet {
+    list-style-type:    none;
+}
+
+.slrn-sr-message {
+    padding:            1em;
+}
+
+.slrn-filter {
+    font-size:          0.9em;
+}
+
+.slrn-filter-input {
+    padding:            1em;
+    background-color:   #eeeeee;
+}
+
+.slrn-filter h3 {
+   font-size:           1.3em;
+   font-weight:         bold;
+   background-color:    #4B667C;
+   color:               #F6F6F6;
+   padding:             0.5em;
+   padding-right:       2em;
+   margin-bottom:       0;
+   margin-top:          0;
+}
+
+.slrn-filter ul {
+    padding-left:       1em;
+}
+
+.slrn-num-found {
+    margin-top:         1em;
+    padding:            0.5em;
+    font-size:          0.9em;
+}
+
+.slrn-search-refine {
+   font-size:           0.9em;
+   text-transform :     uppercase; 
+}
+
+.slrn-header__subsearch {
+    margin-top:         1em;
+    margin-bottom:      1em;
+}
+
+
+.slrn-filter-ispub {
+    cursor:             pointer;
+    padding:            1em 2em 1em 2em;
+    font-weight:        bold;
+}
+
+.slrn-filter-ispub-on {
+    background:         #4B667C;
+    color:              #F6F6F6;
+}
+
+.slrn-filter-ispub-off{
+    background:         #eeeeef;
+    color:              #606060;
+}
+
+.slrn-facet-ispub {
+    display:            none;
+}
+
+.upcase {
+   text-transform:      uppercase; 
+}
+.bold {
+   font-weight:         bold;
+}
+
+.slrn-admin-reindexall {
+   
+}
+
+
+.slrn-num-found_label{
+   font-weight:         bold;
+   text-transform:      uppercase;
+}
+
+.slrn-num-found_number {
+   font-weight:         bold;
+   color:               #FF004F;
+}
+
+.slrn-footer__pager {
+    margin-top:         2em;
+    background-color:   #EEEEEF;
+    font-size:          0.9em;
+    overflow:           hidden;
+}
+
+.slrn-footer__pager ul > li > a {
+    border:             0;
+    background :        #EEEEEF;
+    margin-left:        0.5em;
+    padding:            2px 8px;
+    color:              #606060;
+    
+}
+
+.slrn-footer__pager ul > li.active > a {
+    border:             0;
+    background :        #FF004F;
+    margin-left:        0.5em;
+    padding:            2px 8px;
+    color:              #FFFFFF;
+    font-weight:        bold;
+}
+
+.slrn-footer__pager ul > li.disabled {
+    display:            none;
+}
+
+.slrn-select-pagination option {
+    display:            inline-block;
+    float:              left;
+}
+
+
+.slrn-items-per-page__cntr {
+    display:            inline-block;
+
+}
+
+.slrn-items-per-page__elmnt + label {
+        margin-left:    0.5em;
+    padding:            2px 8px;
+    cursor:             pointer;
+}
+
+.slrn-items-per-page__elmnt:checked + label {
+    background :        #FF004F;
+    color:              #FFFFFF;
+    cursor:             auto;
+    font-weight:        bold;
+}
+
+.slrn-items-per-page__elmnt {
+    display:            none;
+}
+

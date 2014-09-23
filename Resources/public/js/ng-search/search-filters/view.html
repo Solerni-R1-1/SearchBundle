@@ -1,18 +1,7 @@
 <div 
-    ng-repeat="facet in data.results.facets">
-    <h3>{{ facet.name }}</h3>
-    <ul>
-
-        <li 
-            ng-repeat="elmnt in facet.value">
-            <input 
-                type="checkbox" 
-                name="{{facet.name + '[]'}}" 
-                ng-change="search(data.query)" 
-                ng-model="data.query.filters[facet.name][elmnt.value]"/> 
-            
-            <label>{{ elmnt.value + '(' + elmnt.count + ')'}}</label>
-        </li>
-    </ul>
+    class="slrn-filter"
+    ng-repeat="facet in data.facets">
+    
+    <div ng-include src="facet.templateUrl" ></div>
+      
 </div>
-

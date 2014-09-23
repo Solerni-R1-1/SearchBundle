@@ -19,3 +19,40 @@ custom/icap_wiki: Wiki
 custom/ujm_exercise: Exercice
 create_at: Crée le
 edit_at: Modif.
+indexer_admin: Indexer Administration 
+select_indexable_entities: Selectionner les entités à indexer
+type_name: Type de Document
+owner_id: Propriétaire
+mooc_category_ids: Catégory
+wks_id: Worskspace ID
+claroline_forum_message: Messages de forum
+claroline_forum_subject: Sujets du forum
+claroline_forum_category: Catégorie de forum
+items_per_page: Affichage
+claroline_core_mooc_moocsession : Session mooc
+no result found: Aucun résultat trouvé
+result found: Résultats trouvés
+refine your search: Affiner votre recherche
+facet_mcat: Thématique
+facet_type: Type de document
+facet_owner: Entreprise
+mooc_private: Mooc Privé
+mooc_public: Mooc Public
+filter_by: Filtrer par
+proposed: proposé par
+form_requeue_all: Réindexer
+all: Tous
+in_progress: En cours
+coming_soon: A venir
+finished: Terminé
+facet_status: Statuts
+all_mcat: Toutes les thématiques
+all_owner: Toutes les entreprises
+all_status: Tous les moocs
+all_type : Tous les documents
+facet_duration : Durée
+all_duration: Toutes les durées
+less_4: Moins de 4 semaines
+between_4_6: De 4 à 6 semaines
+more_6: Plus de 6 semaines
+

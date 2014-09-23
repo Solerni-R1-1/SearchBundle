@@ -1,0 +1,7 @@
+<div  class="slrn-items-per-page">
+    <label> {{'items_per_page'|trans}} :</label>
+    <div class="slrn-items-per-page__cntr" ng-repeat="rpp in ['10','20','50','100']">
+         <input id="{{rpp}}" ng-change="search(data.query)" class="slrn-items-per-page__elmnt" type="radio" ng-model="data.query.rpp" name="rpp" value="{{rpp}}"> 
+         <label for="{{rpp}}">{{rpp}}</label>
+    </div>
+</div>

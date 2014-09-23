@@ -2,8 +2,9 @@
 
 {% extends layout %}
 
-{% block leftSide %}
-{% endblock %}
+{% block bodyClasses %}{% endblock %}
+
+{% block leftSide %}{% endblock %}
 
 {% block section_content %}
 <div 
@@ -13,32 +14,57 @@
         <div id="slrn-loader"><img src="{{ asset('bundles/orangesearch/images/loader.gif')}}"/></div>
     </div>
     
-    {% stylesheets '@OrangeSearchBundle/Resources/public/css/*' filter='cssrewrite' %}
+    {% stylesheets '@OrangeSearchBundle/Resources/public/css/*' %}
         <link rel="stylesheet" href="{{ asset_url }}" />
     {% endstylesheets %}
 
     <div class="panel-heading">
-        <div class="col-md-12"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-box/view.html')}}'"
-             ng-controller="searchBoxCtrl">
+        <div class="row">
+            <div class="col-md-12"
+                 ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-box/view.html')}}'"
+                 ng-controller="searchBoxCtrl">
+            </div>
         </div>
+        {% if app.user and app.user.getSessionsByUsers()|length > 0 %}
+            <div class="row slrn-header__subsearch">
+                <div class="col-md-3 upcase">
+                    {{ "filter_by"| trans({}, 'search') }} :
+                </div>
+                <div class="col-md-5" 
+                     ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/private-public.html')}}'"
+                     ng-controller="searchFiltersCtrl">
+                </div>
+
+            </div>
+        {% endif %}
     </div>
-    <div class="panel-body">
-        <div class="col-md-4"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/view.html')}}'"
-             ng-controller="searchFiltersCtrl">
+    <div class="panel-body row">
+        <div class="col-md-3">
+            <div class="slrn-num-found" 
+                ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-num-found/view.html')}}'"
+                ng-controller="searchNumFoundCtrl">
+            </div>
+            <div
+                ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-filters/view.html')}}'"
+                ng-controller="searchFiltersCtrl">
+            </div>
         </div>
-        <div class="col-md-8"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-results/view.html')}}'"
-             ng-controller="searchResultsCtrl">
-        </div>
-    </div>
         
-    <div class="panel-footer">
-        <div class="col-md-8 col-md-offset-4"
-             ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'"
-             ng-controller="searchPagerCtrl">
-        </div>
+        <div class="col-md-9">
+            <div
+                ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-results/view.html')}}'"
+                ng-controller="searchResultsCtrl">
+            </div>
+            <div class="slrn-footer__pager" 
+                ng-controller="searchPagerCtrl">
+                <div class="col-md-6"
+                     ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/items-per-page.html')}}'">
+                </div>
+                <div class="col-md-6"
+                     ng-include="'{{ asset('bundles/orangesearch/js/ng-search/search-pager/view.html')}}'">
+                </div>
+            </div>
+        </div>  
     </div>
 </div>
 {% endblock %}
@@ -54,6 +80,10 @@
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-bootstrap-tpls-0.11.0.js') }}"></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/ng-search.js') }}"></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/trans.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/path.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/truncate.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/tranfo.js') }}"></script>
+    
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/factories/data-search-factory.js') }}"></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/services/ng-search-service.js') }}"></script>
 
@@ -62,4 +92,5 @@
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-box/search-box-ctrl.js') }}"/></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-filters/search-filters-ctrl.js') }}"/></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-pager/search-pager-ctrl.js') }}"/></script>
+    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-num-found/search-num-found-ctrl.js') }}"/></script>
 {%endblock%}
