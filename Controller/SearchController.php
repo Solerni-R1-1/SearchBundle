@@ -140,15 +140,15 @@ class SearchController extends Controller
             $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
             $query->setOmitHeader(false);
             if ($keywords) {
-                $query->setQuery('content:"'.$keywords .'"');
+                $query->setQuery('content_t:"'.$keywords .'"');
             } else {
                 $query->setQuery('*');
             }
             
             // get highlighting component and apply settings
             $hl = $query->getHighlighting();
-            $hl->setFragsize(300);
-            $hl->setFields('content');
+            $hl->setFragsize(85);
+            $hl->setFields('content_t');
             $hl->setSimplePrefix('<mark>');
             $hl->setSimplePostfix('</mark>');
             // get the facetset component
