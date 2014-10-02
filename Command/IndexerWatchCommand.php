@@ -22,16 +22,26 @@ class IndexerWatchCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
+    	$em = $this->getContainer()->get('doctrine')->getEntityManager();
+    	$em->getConnection()->close();
+    	
         $ctx = new \ZMQContext();
         $server = new \ZMQSocket($ctx, \ZMQ::SOCKET_PULL);
         $server->bind("tcp://*:11111");
 
         while (true) {
             $message = $server->recv();
+
+            $em = $this->getContainer()->get('doctrine')->getEntityManager();
+            $em->getConnection()->connect();
+            
             $indexerManager = $this->getContainer()->get('orange.search.indexer_manager');
             $messageArray = json_decode($message, true);
             $report = $indexerManager->process($messageArray);
             $output->writeln($report);
+
+            $em->getConnection()->close();
         }
     }
 
