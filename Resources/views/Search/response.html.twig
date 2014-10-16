@@ -67,6 +67,18 @@
         </div>  
     </div>
 </div>
+<div id="modal-solr-error" class="modal fade" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body">
+				<p>Une erreur interne est survenu. Veuillez réessayer plus tard.</p>
+			</div>
+			<div class="modal-footer">
+				<input type="button" class="btn btn-default" data-dismiss="modal" value="{{ 'ok'|trans({}, 'platform') }}"/>
+			</div>
+		</div>
+	</div>
+</div>
 {% endblock %}
 
 {%block javascripts%}

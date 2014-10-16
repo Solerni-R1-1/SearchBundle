@@ -1,4 +1,4 @@
-searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory', function($scope, $location, dataSearchFactory) {
+searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFactory', function($q, $scope, $location, dataSearchFactory) {
         var _namespace = {
             'results': null,
             'query': {
@@ -89,10 +89,14 @@ searchApp.controller('ngSearchCtrl', ['$scope', '$location', 'dataSearchFactory'
                 _namespace.query = query;
                 $scope.data = _namespace;
 
+            }, function(reason) {
+                return $q.reject(reason);
             }).then(function() {
                 _facetsBuilder(_namespace.query);
                 _filtersBuilder(_namespace.query, $scope.data.results.facets);
                  $location.search(_namespace.query);
+            }, function(reason) {
+            	$('#modal-solr-error').modal();
             }).then(function() {
                 document.getElementById('slrn-wrapper').style.display = 'none';
             });
