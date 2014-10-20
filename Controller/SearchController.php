@@ -64,6 +64,10 @@ class SearchController extends Controller
         try {
             $client = $this->get('solarium.client');
             $request = $this->getRequest();
+            $query = $request->query->get("q");
+            if (substr_count($query, "\"") % 2 != 0) {
+            	$request->query->set("q", $query."\"");
+            }
             $resultset = $client->select($this->createQuery($request));
             $highlighting = $resultset->getHighlighting();
 
