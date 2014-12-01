@@ -151,7 +151,7 @@ class SearchController extends Controller
             
             // get highlighting component and apply settings
             $hl = $query->getHighlighting();
-          //  $hl->setFragsize(85);
+            $hl->setFragsize(85);
             $hl->setFields('content_t, mooc_description_t, mooc_about_description_t');
             $hl->setSimplePrefix('<mark>');
             $hl->setSimplePostfix('</mark>');
