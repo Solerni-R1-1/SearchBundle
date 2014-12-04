@@ -144,7 +144,13 @@ class SearchController extends Controller
             $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
             $query->setOmitHeader(false);
             if ($keywords) {
-                $query->setQuery('content_t:"'.$keywords .'"');
+	            $keywords = explode(" ", $keywords);
+	            $queryString = "(";
+	            foreach ($keywords as $i => $keyword) {
+	            	$queryString = $queryString.($i == 0 ? "" : " OR ")."\"".$keyword."\"";
+	            }
+	            $queryString = $queryString.")";
+                $query->setQuery('content_t:'.$queryString);
             } else {
                 $query->setQuery('*');
             }
