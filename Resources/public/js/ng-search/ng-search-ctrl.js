@@ -99,6 +99,7 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
             	$('#modal-solr-error').modal();
             }).then(function() {
                 document.getElementById('slrn-wrapper').style.display = 'none';
+                window.scrollTo(0, 0);
             });
         };
 
