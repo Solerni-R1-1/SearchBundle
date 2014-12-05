@@ -210,3 +210,37 @@ mark {
     display:            none;
 }
 
+
+
+/* Likes */
+.slrn-like-bar {
+    font-size: 1.1em;
+}
+
+.slrn-like-bar__elem {
+    display: inline-block;
+    padding: 5px;
+    border: 2px solid #DDD;
+}
+
+.slrn-like-num {
+    border-radius:  5px 0 0 5px;
+    color:          #FF004F;
+    font-weight:    bold;
+}
+
+.slrn-like-thumb {
+    border-radius:  0 5px 5px 0;
+    color:          #DDD;
+  /*  cursor:         pointer;*/
+}
+
+.slrn-like-thumb:hover, 
+.slrn-like-thumb.active {
+    text-decoration:    none;
+ /*   color:              #FF004F;*/
+}
+
+.slrn-like-thumb .icon-thumb {
+    font-size: 1.2em;
+}
