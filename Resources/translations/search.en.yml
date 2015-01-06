@@ -1,0 +1,57 @@
+solr_config: Configuration SOLR#GB
+file: Fichier#GB
+name: Nom#GB
+type: Type#GB
+nb_results: Nombre de résultats#GB
+search: Rechercher#GB
+solr_host: Nom ou adresse IP du serveur#GB
+solr_port: Port#GB
+solr_path: Chemin#GB
+list_results: Liste résultats#GB
+solr_current_configuration: Configuration actuelle#GB
+solr_change_configuration: Modification de la configuration#GB
+all_resources: Tous les objets#GB
+custom/claroline_forum: Forum#GB
+custom/text: Article#GB
+custom/file: Fichier#GB
+custom/claroline_announcement_aggregate: Annonce#GB
+custom/icap_wiki: Wiki#GB
+custom/ujm_exercise: Exercice#GB
+create_at: Crée le#GB
+edit_at: Modif.#GB
+indexer_admin: Indexer Administration#GB
+select_indexable_entities: Selectionner les entités à indexer#GB
+type_name: Type de Document#GB
+owner_id: Propriétaire#GB
+mooc_category_ids: Catégory#GB
+wks_id: Worskspace ID#GB
+claroline_forum_message: Messages de forum#GB
+claroline_forum_subject: Sujets du forum#GB
+claroline_forum_category: Catégorie de forum#GB
+items_per_page: Affichage#GB
+claroline_core_mooc_moocsession : Session mooc#GB
+no result found: Aucun résultat trouvé#GB
+result found: Résultats trouvés#GB
+refine your search: Affiner votre recherche#GB
+facet_mcat: Thématique#GB
+facet_type: Type de document#GB
+facet_owner: Entreprise#GB
+mooc_private: Mooc Privé#GB
+mooc_public: Mooc Public#GB
+filter_by: Filtrer par#GB
+proposed: proposé par#GB
+form_requeue_all: Réindexer#GB
+all: Tous#GB
+in_progress: En cours#GB
+coming_soon: A venir#GB
+finished: Terminé#GB
+facet_status: Statuts#GB
+all_mcat: Toutes les thématiques#GB
+all_owner: Toutes les entreprises#GB
+all_status: Tous les moocs#GB
+all_type : Tous les documents#GB
+facet_duration : Durée#GB
+all_duration: Toutes les durées#GB
+less_4: Moins de 4 semaines#GB
+between_4_6: De 4 à 6 semaines#GB
+more_6: Plus de 6 semaines#GB
