@@ -57,6 +57,7 @@ class AdministrationController extends Controller
                     'required' => false,
                     'multiple' => true,
                     'expanded' => true,
+                    'translation_domain' => 'search',
                     'data' => $entityToIndexClassNames))
                 ->add('reindexAll', 'checkbox', array(
                     'required' => false, 
