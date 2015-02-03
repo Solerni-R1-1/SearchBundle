@@ -1,76 +1,67 @@
-solr_config: Configuration SOLR#GB
-file: Fichier#GB
-name: Nom#GB
-type: Type#GB
-nb_results: Nombre de résultats#GB
-search: Rechercher#GB
-solr_host: Nom ou adresse IP du serveur#GB
-solr_port: Port#GB
-solr_path: Chemin#GB
-list_results: Liste résultats#GB
-solr_current_configuration: Configuration actuelle#GB
-solr_change_configuration: Modification de la configuration#GB
-all_resources: Tous les objets#GB
-custom/claroline_forum: Forum#GB
-custom/text: Article#GB
-custom/file: Fichier#GB
-custom/claroline_announcement_aggregate: Annonce#GB
-custom/icap_wiki: Wiki#GB
-custom/ujm_exercise: Exercice#GB
-create_at: Crée le#GB
-edit_at: Modif.#GB
-indexer_admin: Indexer Administration#GB
-select_indexable_entities: Selectionner les entités à indexer#GB
-type_name: Type de Document#GB
-owner_id: Propriétaire#GB
-mooc_category_ids: Catégory#GB
-wks_id: Worskspace ID#GB
-claroline_forum_message: Messages de forum#GB
-claroline_forum_subject: Sujets du forum#GB
-claroline_forum_category: Catégorie de forum#GB
-items_per_page: Affichage#GB
-claroline_core_mooc_moocsession : Session mooc#GB
-no result found: Aucun résultat trouvé#GB
-result found: Résultats trouvés#GB
-refine your search: Affiner votre recherche#GB
-facet_mcat: Thématique#GB
-facet_type: Type de document#GB
-facet_owner: Entreprise#GB
-mooc_private: Mooc Privé#GB
-mooc_public: Mooc Public#GB
-filter_by: Filtrer par#GB
-proposed: proposé par#GB
-form_requeue_all: Réindexer#GB
-all: Tous#GB
-in_progress: En cours#GB
-coming_soon: A venir#GB
-finished: Terminé#GB
-facet_status: Statuts#GB
-all_mcat: Toutes les thématiques#GB
-all_owner: Toutes les entreprises#GB
-all_status: Tous les moocs#GB
-all_type : Tous les documents#GB
-facet_duration : Durée#GB
-all_duration: Toutes les durées#GB
-less_4: Moins de 4 semaines#GB
-between_4_6: De 4 à 6 semaines#GB
-more_6: Plus de 6 semaines#GB
+solr_config: SOLR configuration
+file: File
+name: Name
+type: Type
+nb_results: Number of results
+search: Search
+solr_host: Server name or IP address
+solr_port: Port
+solr_path: Path
+list_results: Results list
+solr_current_configuration: Current configuration
+solr_change_configuration: Modifying the configuration
+all_resources: All subjects
+custom/claroline_forum: Forum
+custom/text: Article
+custom/file: File
+custom/claroline_announcement_aggregate: Announcement
+custom/icap_wiki: Wiki
+custom/ujm_exercise: Exercise
+create_at: Created on
+edit_at: Modif.
+indexer_admin: Index administration
+select_indexable_entities: Select the entities to be indexed
+type_name: Document type
+owner_id: Owner
+mooc_category_ids: Category
+wks_id: Workspace ID
+claroline_forum_message: Forum messages
+claroline_forum_subject: Forum subjects
+claroline_forum_category: Forum category
+items_per_page: Display
+claroline_core_mooc_moocsession : MOOC session
+no result found: No result found
+result found: Results found
+refine your search: Refine your search
+facet_mcat: Theme
+facet_type: Document type
+facet_owner: Company
+mooc_private: Private MOOC
+mooc_public: Public MOOC
+filter_by: Filter by
+proposed: proposed by
+form_requeue_all: Reindex
+all: All
+in_progress: In progress
+coming_soon: Coming soon
+finished: Complete
+facet_status: Status
+all_mcat: All themes
+all_owner: All companies
+all_status: All MOOCs
+all_type : All documents
+facet_duration : Duration
+all_duration: All durations
+less_4: Less than 4 weeks
+between_4_6: From 4 to 6 weeks
+more_6: More than 6 weeks
 
-proposed_by: Proposé par#GB
-know_more: En savoir +#GB
-start_on: Début le#GB
-end_on: Fin le#GB
-badgeant: Badgeant#GB
-free_mooc: Mooc gratuit#GB
-available_on: Disponible#GB
-created_by: crée par#GB
-read_discussion: lire la discussion le#GB
-forum_caps: FORUM#GB
-posted_by: posté par#GB
-read_more: lire la suite#GB
-see_theme: voir le thème#GB
+start_on: Starts on
+proposed_by: Proposed by
+end_on: Ending on
+badgeant: Badges available
+free_mooc: Free MOOC
+know_more: Find out more
 
-Enseignement: Enseignement#GB
-Métiers: Métiers#GB
-Apprentissage: Apprentissage#GB
-Culture: Culture#GB
+changes_saved: Changes has been saved
+reindexing: Reindexation has been requested
