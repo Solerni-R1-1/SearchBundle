@@ -3,12 +3,14 @@
     <div class="slrn-filter-input">
         <ul class="slrn-ul-no-bullet">
             <li
-                ng-repeat="elmnt in facet.value">
+                ng-repeat="elmnt in facet.value"
+                ng-show="elmnt.count > 0"
+                >
                 <input 
                     type="checkbox" 
                     name="{{facet.name + '[]'}}" 
                     ng-change=" $scope.updateQuery(data.filters, facet.name)" 
-                    ng-model="data.filters[facet.name][elmnt.value]"/> 
+                    ng-model="data.filters[facet.name][elmnt.value]"/>
 
                 <label>{{ (elmnt.label) + ' (' + elmnt.count + ')'}}</label>
             </li>
