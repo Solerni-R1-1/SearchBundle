@@ -1,0 +1,74 @@
+solr_config: SOLR configuration
+file: File
+name: Name
+type: Type
+nb_results: Number of results
+search: Search
+solr_host: Server name or IP address
+solr_port: Port
+solr_path: Path
+list_results: Results list
+solr_current_configuration: Current configuration
+solr_change_configuration: Modifying the configuration
+all_resources: All subjects
+custom/claroline_forum: Forum
+custom/text: Article
+custom/file: File
+custom/claroline_announcement_aggregate: Announcement
+custom/icap_wiki: Wiki
+custom/ujm_exercise: Exercise
+create_at: Created on
+edit_at: Modif.
+indexer_admin: Index administration
+select_indexable_entities: Select the entities to be indexed
+type_name: Document type
+owner_id: Owner
+mooc_category_ids: Category
+wks_id: Workspace ID
+claroline_forum_message: Forum messages
+claroline_forum_subject: Forum subjects
+claroline_forum_category: Forum category
+items_per_page: Display
+claroline_core_mooc_moocsession : MOOC session
+no result found: No result found
+result found: Results found
+refine your search: Refine your search
+facet_mcat: Theme
+facet_type: Document type
+facet_owner: Company
+mooc_private: Private MOOC
+mooc_public: Public MOOC
+filter_by: Filter by
+proposed: proposed by
+form_requeue_all: Reindex
+all: All
+in_progress: In progress
+coming_soon: Coming soon
+finished: Complete
+facet_status: Status
+all_mcat: All themes
+all_owner: All companies
+all_status: All MOOCs
+all_type : All documents
+facet_duration : Duration
+all_duration: All durations
+less_4: Less than 4 weeks
+between_4_6: From 4 to 6 weeks
+more_6: More than 6 weeks
+
+start_on: Starts on
+proposed_by: Proposed by
+end_on: Ending on
+badgeant: Badges available
+free_mooc: Free MOOC
+know_more: Find out more
+
+changes_saved: Changes has been saved
+reindexing: Reindexation has been requested
+
+forum_caps: forum
+posted_by: by
+see_theme: see the theme
+read_discussion: see the subject
+read_more: read more
+created_by: by

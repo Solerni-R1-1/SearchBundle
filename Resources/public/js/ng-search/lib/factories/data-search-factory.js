@@ -10,7 +10,7 @@ searchApp.factory('dataSearchFactory', ['$q', 'ngSearchService', function($q, ng
                 angular.forEach(response.data.documents, function(document) {
                     document.templateUrl = Claroline.Home.asset +
                             'bundles/orangesearch/js/ng-search/search-results/templates/' +
-                            document.type_name +
+                            document.type_name + /*'_' + window.Claroline.Home.locale +*/
                             '.html';
                 });
                 

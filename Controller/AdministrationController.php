@@ -11,20 +11,27 @@ use JMS\SecurityExtraBundle\Annotation\Secure;
 use JMS\DiExtraBundle\Annotation as DI;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Translation\TranslatorInterface;
 
 class AdministrationController extends Controller
 {
     
-    
+   private $translator;
+   private $entityManager;
+   
      /**
      * @DI\InjectParams({
-     *     "entityManager" = @DI\Inject("doctrine.orm.entity_manager")
+     *     "entityManager"      = @DI\Inject("doctrine.orm.entity_manager"),
+     *     "translator"         = @DI\Inject("translator")
      * })
      */
     public function __construct(
-        EntityManager $entityManager)
+        EntityManager $entityManager,
+        TranslatorInterface $translator
+            )
     {
-        $this->entityManager = $entityManager;
+        $this->entityManager    = $entityManager;
+        $this->translator       = $translator;
     }
     
     
@@ -57,6 +64,7 @@ class AdministrationController extends Controller
                     'required' => false,
                     'multiple' => true,
                     'expanded' => true,
+                    'translation_domain' => 'search',
                     'data' => $entityToIndexClassNames))
                 ->add('reindexAll', 'checkbox', array(
                     'required' => false, 
@@ -84,14 +92,15 @@ class AdministrationController extends Controller
             $this->getDoctrine()->getManager()->flush();
             $this->get('session')->getFlashBag()->add(
                 'notice',
-                'Vos changements ont été sauvegardés.'
+                $this->translator->trans('changes_saved', array(), 'search')
             );
                         
             if (isset($data['reindexAll']) && $data['reindexAll']) {
                 $this->get('orange.search.indexer_todo_manager')->requeueAll();
 
                 $this->get('session')->getFlashBag()->add(
-                    'notice', 'La réindexation a été demandée.'
+                    'notice', 
+                    $this->translator->trans('reindexing', array(), 'search')
                 );
             }
         }
