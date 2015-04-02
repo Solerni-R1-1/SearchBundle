@@ -224,16 +224,24 @@ class SearchController extends Controller
     private function getUserRolesIds()
     {
         $user = $this->get('security.context')->getToken()->getUser();
+        $roleManager = $this->get('claroline.manager.role_manager');
+        
         $userAccessRoleIds = array();
 
         if ( $user === 'anon.') {
-            $userAccessRoleIds [] = $this->get('claroline.manager.role_manager')
+            $userAccessRoleIds [] = $roleManager
                                          ->getRoleByName('ROLE_ANONYMOUS')
                                          ->getId();
         } else {
             $userAccessRoleIds = array_map(function ($role) { return (int) $role->getId(); }, $user->getEntityRoles()->toArray());
+            // Add Collaborator roles for user with constraints
+            if (  $user->getSessionsByUsers() ) {
+                foreach( $user->getSessionsByUsers() as $constraint ) {
+                    $userAccessRoleIds[] = $roleManager->getCollaboratorRole( $constraint->getMoocSession()->getMooc()->getWorkspace() )->getId();       
+                }
+            }
         }
-        
+
         return $userAccessRoleIds;
     } 
     

@@ -7,16 +7,17 @@
             ng-model="data.filters[facet.name]['all']"/>
         <label>{{'all_' + facet.name | trans }}</label>
         <ul class="slrn-ul-no-bullet">
-            <li
-                ng-show="elmnt.count > 0"
+            <li class="slrn-ul-no-bullet__li"
+                ng-show="! ( elmnt.count == 0 && facet.name == 'owner' )"
                 ng-repeat="elmnt in facet.value">
                 <input 
+                    class="slrn-ul-no-bullet__li__input"
                     type="checkbox" 
                     name="{{facet.name + '[]'}}" 
                     ng-change="functions.filters.checkboxAll.onChangeCheckbox(data.filters[facet.name], facet.name)" 
                     ng-model="data.filters[facet.name][elmnt.value]"/> 
 
-                <label class="test">{{ (elmnt.label) + ' (' + elmnt.count + ')'}}</label>
+                <label class="slrn-ul-no-bullet__li__label">{{ (elmnt.label) + ' (' + elmnt.count + ')'}}</label>
             </li>
         </ul>
     </div>

@@ -244,3 +244,11 @@ mark {
 .slrn-like-thumb .icon-thumb {
     font-size: 1.2em;
 }
+
+.slrn-ul-no-bullet__li {
+    margin-bottom: 5px !important; 
+}
+
+.slrn-ul-no-bullet__li__label {
+    display: inline !important;
+}
