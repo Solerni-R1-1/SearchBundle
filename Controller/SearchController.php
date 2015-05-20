@@ -135,8 +135,6 @@ class SearchController extends Controller
             $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
             // get activated filters
             $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
-
-            
             
             $client = $this->get('solarium.client');
             // get a select query instance
@@ -153,6 +151,11 @@ class SearchController extends Controller
                 $query->setQuery('content_t:'.$queryString);
             } else {
                 $query->setQuery('*');
+            }
+            
+            // Add sort order for mooc session
+            if ( $fixedSelections && in_array( array('claroline_core_mooc_moocsession'), $fixedSelections) ) {
+                $query->addSort('start_date', 'DESC');
             }
             
             // get highlighting component and apply settings
