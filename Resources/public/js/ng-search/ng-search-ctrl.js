@@ -49,7 +49,6 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                             var elmnts = {};
                             elmnts['all'] = true;
                             angular.forEach(facet.value, function(elmnt) {
-                                console.log(query.ss);
                                 if (query.ss && query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
                                     elmnts[elmnt.value] = false;
                                 } else {
@@ -66,7 +65,6 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                         $scope.data.filters[facet.name] = (function(facet) {
                             var elmnts = {};
                             angular.forEach(facet.value, function(elmnt) {
-                                console.log(query.ss);
                                 if (query.ss && query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
                                     elmnts[elmnt.value] = false;
                                 } else {
@@ -77,14 +75,12 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                         })(facet);
                         break;
                 }
-
             });
         };
 
 
         var _search = function(query) {
             document.getElementById('slrn-wrapper').style.display = 'block';
-            //console.log(query);
             dataSearchFactory.request(query).then(function(data) {
                 _namespace.results = data;
                 _namespace.query = query;
@@ -96,7 +92,6 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                 _filtersBuilder(_namespace.query, $scope.data.results.facets);
                  $location.search(_namespace.query);
             }, function(reason) {
-                console.log('error: '+reason);
             	$('#modal-solr-error').modal();
             }).then(function() {
                 document.getElementById('slrn-wrapper').style.display = 'none';
@@ -123,8 +118,9 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                 var elmnts = [];
                 angular.forEach(filters, function(value, key) {
                     var generatedSelectionQuery = _generateSelectionQuery(value, key);
-                    if (generatedSelectionQuery.trim())
+                    if ($.trim(generatedSelectionQuery)) {
                         elmnts.push(generatedSelectionQuery);
+                    }
                 });
                 return elmnts;
             })(filters);
