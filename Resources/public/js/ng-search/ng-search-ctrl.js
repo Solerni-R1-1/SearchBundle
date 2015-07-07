@@ -12,22 +12,22 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
             },
             'filters': {},
             'facets': []
-        };
+        };          
 
-
+          
         var _indexOfObjByName = function(objects, name) {
             for( var i=0;  i < objects.length; i++) {
                 if (objects[i].name === name) return i;
             }
             return -1;
         };
-
-
+              
+        
         var _facetsBuilder = function(query) {
             if (query.se) {
                 var indexOfFacet = _indexOfObjByName($scope.data.facets, query.se);
                 var isAll = true;
-
+                
                 angular.forEach(query.ss.split(','), function(ss) {
                 	if (ss.indexOf("status__") == 0) {
                 		isAll = false;
@@ -39,17 +39,18 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
             }
            $scope.data.facets = $scope.data.results.facets;
         };
-
+        
         var _filtersBuilder = function(query, facets) {
             $scope.data.showPublicPrivateDiv = false;
             angular.forEach(facets, function(facet) {
+                
                 switch (facet.type) {
                     case 'checkbox-all' :
                         $scope.data.filters[facet.name] = (function(facet) {
                             var elmnts = {};
                             elmnts['all'] = true;
                             angular.forEach(facet.value, function(elmnt) {
-                                if (query.ss && query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
+                                if (query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
                                     elmnts[elmnt.value] = false;
                                 } else {
                                     elmnts[elmnt.value] = true;
@@ -59,13 +60,13 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                             return elmnts;
                         })(facet);
                         break;
-                    case 'checkbox' :
+                    case 'checkbox' : 
                         if (facet.name === 'ispub')
                             $scope.data.showPublicPrivateDiv = true;
                         $scope.data.filters[facet.name] = (function(facet) {
                             var elmnts = {};
                             angular.forEach(facet.value, function(elmnt) {
-                                if (query.ss && query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
+                                if (query.ss.split(",").indexOf(facet.name + '__' + elmnt.value) < 0) {
                                     elmnts[elmnt.value] = false;
                                 } else {
                                     elmnts[elmnt.value] = true;
@@ -75,16 +76,19 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                         })(facet);
                         break;
                 }
+
             });
         };
 
 
         var _search = function(query) {
             document.getElementById('slrn-wrapper').style.display = 'block';
+            //console.log(query);
             dataSearchFactory.request(query).then(function(data) {
                 _namespace.results = data;
                 _namespace.query = query;
                 $scope.data = _namespace;
+
             }, function(reason) {
                 return $q.reject(reason);
             }).then(function() {
@@ -118,15 +122,14 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                 var elmnts = [];
                 angular.forEach(filters, function(value, key) {
                     var generatedSelectionQuery = _generateSelectionQuery(value, key);
-                    if ($.trim(generatedSelectionQuery)) {
+                    if (generatedSelectionQuery.trim())
                         elmnts.push(generatedSelectionQuery);
-                    }
                 });
                 return elmnts;
             })(filters);
-
+            
             $scope.data.query.ss = slices.join(',');
-
+            
             if (srcEventFacetName)
                 $scope.data.query.se = srcEventFacetName;
             $location.search($scope.data.query);
@@ -134,7 +137,7 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
 
         $scope.search = function(query) {
             _search(query);
-
+            
         };
 
 
@@ -142,7 +145,7 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
             var searchObject = $location.search();
             angular.extend(_namespace.query, searchObject);
             $location.search(_namespace.query);
-
+            
             $scope.$on('$locationChangeSuccess', function(event){
                 var searchObject = $location.search();
                 _namespace.query = searchObject;
@@ -150,7 +153,7 @@ searchApp.controller('ngSearchCtrl', ['$q', '$scope', '$location', 'dataSearchFa
                 _search(_namespace.query);
             });
 
-
+            
         })();
 
     }]);
