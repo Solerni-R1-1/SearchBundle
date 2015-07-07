@@ -83,10 +83,6 @@
 
 {%block javascripts%}
     {{ parent() }}
-
-    <!--[if lte IE 9 ]>
-        <script type="text/javascript" src="{{ asset('bundles/clarolinecore/js/indexof-polyfill.js') }}"></script>
-    <![endif]-->
     <script type="text/javascript" src="{{ url('bazinga_exposetranslation_js', { 'domain_name': 'search' }, true ) }}"></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/angular.js') }}"></script>
     <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/angular-resource.js') }}"></script>
