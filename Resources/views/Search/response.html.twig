@@ -83,30 +83,46 @@
 
 {%block javascripts%}
     {{ parent() }}
-
-    <!--[if lte IE 9 ]>
-        <script type="text/javascript" src="{{ asset('bundles/clarolinecore/js/indexof-polyfill.js') }}"></script>
-    <![endif]-->
     <script type="text/javascript" src="{{ url('bazinga_exposetranslation_js', { 'domain_name': 'search' }, true ) }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/angular.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/angular-resource.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/angular-sanitize.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-utils-ieshiv.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-utils.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ext-libs/ui/ui-bootstrap-tpls-0.11.0.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/ng-search.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/trans.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/path.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/truncate.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/filters/tranfo.js') }}"></script>
-
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/factories/data-search-factory.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/lib/services/ng-search-service.js') }}"></script>
-
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/ng-search-ctrl.js') }}"/></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-results/search-results-ctrl.js') }}"/></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-box/search-box-ctrl.js') }}"/></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-filters/search-filters-ctrl.js') }}"/></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-pager/search-pager-ctrl.js') }}"/></script>
-    <script type="text/javascript" src="{{ asset('bundles/orangesearch/js/ng-search/search-num-found/search-num-found-ctrl.js') }}"/></script>
+    {% javascripts debug=false filter='jsmin'
+        'bundles/orangesearch/js/angular.js'
+        'bundles/orangesearch/js/ext-libs/angular-resource.js'
+        'bundles/orangesearch/js/ext-libs/angular-sanitize.js'
+        'bundles/orangesearch/js/ext-libs/ui/ui-utils-ieshiv.js'
+        'bundles/orangesearch/js/ext-libs/ui/ui-utils.js'
+        'bundles/orangesearch/js/ext-libs/ui/ui-bootstrap-tpls-0.11.0.js'
+        'bundles/orangesearch/js/ng-search/ng-search.js'
+        'bundles/orangesearch/js/ng-search/lib/filters/trans.js'
+        'bundles/orangesearch/js/ng-search/lib/filters/path.js'
+        'bundles/orangesearch/js/ng-search/lib/filters/truncate.js'
+        'bundles/orangesearch/js/ng-search/lib/filters/tranfo.js'
+        'bundles/orangesearch/js/ng-search/lib/factories/data-search-factory.js'
+        'bundles/orangesearch/js/ng-search/lib/services/ng-search-service.js'
+        'bundles/orangesearch/js/ng-search/ng-search-ctrl.js'
+        'bundles/orangesearch/js/ng-search/search-results/search-results-ctrl.js'
+        'bundles/orangesearch/js/ng-search/search-box/search-box-ctrl.js'
+        'bundles/orangesearch/js/ng-search/search-filters/search-filters-ctrl.js'
+        'bundles/orangesearch/js/ng-search/search-pager/search-pager-ctrl.js'
+        'bundles/orangesearch/js/ng-search/search-num-found/search-num-found-ctrl.js'
+    %}<script type="text/javascript" src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+    <!--[if lte IE 8 ]>
+        <script>
+            jQuery( document ).ready(function() {
+                checkForLabel = function() {
+                    jQuery('.slrn-items-per-page__elmnt').each( function() {
+                        if ( jQuery(this).is(':checked') ) {
+                            jQuery(this).next('label').addClass('label-active');
+                        }else {
+                            jQuery(this).next('label').removeClass('label-active');
+                        }
+                    });
+                }
+                // IE8 fallback. Better change the angular application to deal with this, this is a IE8 quick fix
+                setInterval( function() {
+                    checkForLabel();
+                }, 2000);
+            });
+        </script>
+    <![endif]-->
 {%endblock%}
