@@ -121,85 +121,92 @@ class SearchController extends Controller
      */
     private function createQuery($request) {
         
-            $logger = $this->container->get('logger');
+        $logger = $this->container->get('logger');
 
-            // get query string (keywords)
-            $keywords = $request->query->get('q');
-            // get filters
-            $selections = $this->parseQuery($request->query->get('ss'));
-            // get fixed filters 
-            $fixedSelections = $this->parseQuery($request->query->get('fs'));
-            // get page
-            $page = $request->query->get('page') ? $request->query->get('page') : 1;
-            // get item per page
-            $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
-            // get activated filters
-            $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
-            
-            $client = $this->get('solarium.client');
-            // get a select query instance
-            $query = $client->createSelect();
-            $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
-            $query->setOmitHeader(false);
-            if ($keywords) {
-	            $keywords = explode(" ", $keywords);
-	            $queryString = "(";
-	            foreach ($keywords as $i => $keyword) {
-	            	$queryString = $queryString.($i == 0 ? "" : " OR ")."\"".$keyword."\"";
-	            }
-	            $queryString = $queryString.")";
-                $query->setQuery('content_t:'.$queryString);
-            } else {
-                $query->setQuery('*');
+        // get query string (keywords)
+        $keywords = $request->query->get('q');
+        // get filters
+        $selections = $this->parseQuery($request->query->get('ss'));
+        // get fixed filters
+        $fixedSelections = $this->parseQuery($request->query->get('fs'));
+        // get page
+        $page = $request->query->get('page') ? $request->query->get('page') : 1;
+        // get item per page
+        $itemsPerPage = $request->query->get('rpp') ? $request->query->get('rpp') : 3;
+        // get activated filters
+        $ativatedFilters = $request->query->get('afs') ? explode(',', $request->query->get('afs')) : array();
+
+        $client = $this->get('solarium.client');
+        // get a select query instance
+        $query = $client->createSelect();
+        $query->setStart(((int) $page - 1) * $itemsPerPage)->setRows($itemsPerPage);
+        $query->setOmitHeader(false);
+        if ($keywords) {
+            $keywords = explode(" ", $keywords);
+            $queryString = "(";
+            foreach ($keywords as $i => $keyword) {
+                $queryString = $queryString.($i == 0 ? "" : " OR ")."\"".$keyword."\"";
             }
-            
-            // Add sort order for mooc session
-            if ( $fixedSelections && in_array( array('claroline_core_mooc_moocsession'), $fixedSelections) ) {
+            $queryString = $queryString.")";
+            $query->setQuery('content_t:'.$queryString);
+        } else {
+            $query->setQuery('*');
+        }
+
+        // Add sort order for mooc session
+        if ($fixedSelections) {
+            if (in_array( array('claroline_core_mooc_moocsession'), $fixedSelections)) {
                 $query->addSort('start_date', 'DESC');
             }
-            
-            // get highlighting component and apply settings
-            $hl = $query->getHighlighting();
-            $hl->setFragsize(85);
-            $hl->setFields('content_t, mooc_description_t, mooc_about_description_t');
-            $hl->setSimplePrefix('<mark>');
-            $hl->setSimplePostfix('</mark>');
-            // get the facetset component
-            $facetSet = $query->getFacetSet();
-
-            //access role filters
-            $accessRoleExpressionArray = array();
-            foreach ($this->getUserRolesIds() as $id) {
-               $accessRoleExpressionArray [] = 'access_role_ids:"' . $id . '"';
+        } else {
+            if (!$selections || !array_key_exists('type', $selections) || in_array('claroline_core_mooc_moocsession', $selections['type'])) {
+                $query->addSort('exists(start_date)', 'DESC');
+                $query->addSort('score', 'DESC');
             }
-            $accessRoleExpression = "(" . implode(" OR ", $accessRoleExpressionArray) . ")";
-            $logger->info($accessRoleExpression);
-            $query->createFilterQuery('access_role_ids')->setQuery($accessRoleExpression);
-                    
-            /* Selection */
-            foreach ($selections + $fixedSelections as $shortCut => $values) {
-                
-                $filter = $this->get('orange.search.filter_manager')
-                               ->getFilter($shortCut);
-                if ($filter) {
-                    $expression = $filter->getQueryExpression($values);
+        }
 
-                    if ($expression) {
-                        $logger->info($expression);
-                        $query->createFilterQuery($filter->getFieldName())->setQuery($expression);
-                    }
+        // get highlighting component and apply settings
+        $hl = $query->getHighlighting();
+        $hl->setFragsize(85);
+        $hl->setFields('content_t, mooc_description_t, mooc_about_description_t');
+        $hl->setSimplePrefix('<mark>');
+        $hl->setSimplePostfix('</mark>');
+        // get the facetset component
+        $facetSet = $query->getFacetSet();
+
+        //access role filters
+        $accessRoleExpressionArray = array();
+        foreach ($this->getUserRolesIds() as $id) {
+           $accessRoleExpressionArray [] = 'access_role_ids:"' . $id . '"';
+        }
+        $accessRoleExpression = "(" . implode(" OR ", $accessRoleExpressionArray) . ")";
+        $logger->info($accessRoleExpression);
+        $query->createFilterQuery('access_role_ids')->setQuery($accessRoleExpression);
+
+        /* Selection */
+        foreach ($selections + $fixedSelections as $shortCut => $values) {
+
+            $filter = $this->get('orange.search.filter_manager')
+                           ->getFilter($shortCut);
+            if ($filter) {
+                $expression = $filter->getQueryExpression($values);
+
+                if ($expression) {
+                    $logger->info($expression);
+                    $query->createFilterQuery($filter->getFieldName())->setQuery($expression);
                 }
             }
+        }
 
-            // create a facet field instance and set options
-            foreach ($ativatedFilters as $activatedFilter) {
-                $filter = $this->get('orange.search.filter_manager')
-                               ->getFilter($activatedFilter);
-                
-                $filter->createFacet($facetSet);
+        // create a facet field instance and set options
+        foreach ($ativatedFilters as $activatedFilter) {
+            $filter = $this->get('orange.search.filter_manager')
+                           ->getFilter($activatedFilter);
 
-            }
-            return $query;
+            $filter->createFacet($facetSet);
+
+        }
+        return $query;
     }    
     
     
