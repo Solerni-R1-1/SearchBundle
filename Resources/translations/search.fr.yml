@@ -44,8 +44,8 @@ form_requeue_all: Réindexer
 all: Tous
 in_progress: En cours
 coming_soon: A venir
-finished: Terminé
-facet_status: Statuts
+finished: Terminés
+facet_status: Statut
 all_mcat: Toutes les thématiques
 all_owner: Toutes les entreprises
 all_status: Tous les moocs
